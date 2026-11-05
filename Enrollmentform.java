@@ -65,6 +65,117 @@ public class Enrollmentform {
     static final SecureRandom RNG = new SecureRandom();
     static class BadRequest extends RuntimeException { BadRequest(String m) { super(m); } }
     static String env(String k, String d) { String v = System.getenv(k); return v == null || v.isBlank() ? d : v; }
+
+    // =====================================================================================
+    //  EDIT HERE - settings you will want to change
+    // =====================================================================================
+
+    /** School year shown (and saved) on every form. Change this number each year. */
+    static final int SCHOOL_YEAR_START = 2026;
+    static final int SCHOOL_YEAR_END = SCHOOL_YEAR_START + 1;
+
+    /** Religion dropdown. Add, remove or rename items freely; "Others (type it)" is added automatically. */
+    static final String[] RELIGIONS = {
+        "Roman Catholic", "Islam", "Iglesia ni Cristo", "Born Again Christian", "Evangelical",
+        "Seventh-day Adventist", "Aglipayan", "United Church of Christ in the Philippines", "Baptist",
+        "Jehovah's Witnesses", "Latter-day Saints", "Buddhism", "Hinduism", "None"
+    };
+
+    /** Province dropdown. Provinces you add to PLACES below are added to this list automatically. */
+    static final String[] PROVINCES = {
+        "Abra", "Agusan del Norte", "Agusan del Sur", "Aklan", "Albay", "Antique", "Apayao", "Aurora", "Basilan",
+        "Bataan", "Batanes", "Batangas", "Benguet", "Biliran", "Bohol", "Bukidnon", "Bulacan", "Cagayan",
+        "Camarines Norte", "Camarines Sur", "Camiguin", "Capiz", "Catanduanes", "Cavite", "Cebu", "Cotabato",
+        "Davao de Oro", "Davao del Norte", "Davao del Sur", "Davao Occidental", "Davao Oriental", "Dinagat Islands",
+        "Eastern Samar", "Guimaras", "Ifugao", "Ilocos Norte", "Ilocos Sur", "Iloilo", "Isabela", "Kalinga",
+        "La Union", "Laguna", "Lanao del Norte", "Lanao del Sur", "Leyte", "Maguindanao del Norte",
+        "Maguindanao del Sur", "Marinduque", "Masbate", "Metro Manila", "Misamis Occidental", "Misamis Oriental",
+        "Mountain Province", "Negros Occidental", "Negros Oriental", "Northern Samar", "Nueva Ecija",
+        "Nueva Vizcaya", "Occidental Mindoro", "Oriental Mindoro", "Palawan", "Pampanga", "Pangasinan", "Quezon",
+        "Quirino", "Rizal", "Romblon", "Samar", "Sarangani", "Siquijor", "Sorsogon", "South Cotabato",
+        "Southern Leyte", "Sultan Kudarat", "Sulu", "Surigao del Norte", "Surigao del Sur", "Tarlac", "Tawi-Tawi",
+        "Zambales", "Zamboanga del Norte", "Zamboanga del Sur", "Zamboanga Sibugay"
+    };
+
+    /**
+     * City / municipality and barangay lists. One line per barangay:   Province | City or Municipality | Barangay
+     * - A line with only two parts (Province | City) adds the city with no barangay list (people type the barangay).
+     * - Lines starting with # are notes and are ignored. Names are shown in the order you write them.
+     * - Anything not listed here can still be typed using "Others (type it)".
+     * Example (remove the # to use):
+     * # Sample Province | Sample City | Sample Barangay
+     */
+    static final String PLACES = """
+        Metro Manila | Caloocan
+        Metro Manila | Las Pi\u00f1as
+        Metro Manila | Makati
+        Metro Manila | Malabon
+        Metro Manila | Mandaluyong
+        Metro Manila | Manila
+        Metro Manila | Marikina
+        Metro Manila | Muntinlupa
+        Metro Manila | Navotas
+        Metro Manila | Para\u00f1aque
+        Metro Manila | Pasay
+        Metro Manila | Pasig
+        Metro Manila | Pateros
+        Metro Manila | Quezon City
+        Metro Manila | San Juan
+        Metro Manila | Taguig
+        Metro Manila | Valenzuela
+        """;
+
+    // =====================================================================================
+
+    static final Map<String, Map<String, List<String>>> PLACE_MAP = parsePlaces();
+    static final List<String> PROVINCE_LIST = provinceList();
+    static final List<String> CITY_LIST = cityList();
+
+    static Map<String, Map<String, List<String>>> parsePlaces() {
+        Map<String, Map<String, List<String>>> m = new LinkedHashMap<>();
+        for (String line : PLACES.split("\n")) {
+            line = line.trim();
+            if (line.isEmpty() || line.startsWith("#")) continue;
+            String[] parts = line.split("\\|");
+            if (parts.length < 2) continue;
+            String prov = parts[0].trim(), city = parts[1].trim();
+            if (prov.isEmpty() || city.isEmpty()) continue;
+            List<String> brgys = m.computeIfAbsent(prov, k -> new LinkedHashMap<>()).computeIfAbsent(city, k -> new ArrayList<>());
+            if (parts.length > 2 && !parts[2].trim().isEmpty() && !brgys.contains(parts[2].trim())) brgys.add(parts[2].trim());
+        }
+        return m;
+    }
+
+    static List<String> provinceList() {
+        TreeSet<String> t = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        t.addAll(Arrays.asList(PROVINCES));
+        t.addAll(PLACE_MAP.keySet());
+        return new ArrayList<>(t);
+    }
+
+    static List<String> cityList() {
+        TreeSet<String> t = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        for (var p : PLACE_MAP.values()) t.addAll(p.keySet());
+        return new ArrayList<>(t);
+    }
+
+    static String placesJson() {
+        StringBuilder sb = new StringBuilder("{");
+        boolean f1 = true;
+        for (var p : PLACE_MAP.entrySet()) {
+            sb.append(f1 ? "" : ",").append(jq(p.getKey())).append(":{");
+            f1 = false;
+            boolean f2 = true;
+            for (var c : p.getValue().entrySet()) {
+                sb.append(f2 ? "" : ",").append(jq(c.getKey())).append(":[");
+                f2 = false;
+                for (int i = 0; i < c.getValue().size(); i++) sb.append(i > 0 ? "," : "").append(jq(c.getValue().get(i)));
+                sb.append("]");
+            }
+            sb.append("}");
+        }
+        return sb.append("}").toString().replace("<", "\\u003c");
+    }
     static final List<String> KEYS = new ArrayList<>();
     static final Map<String, String> LABELS = new HashMap<>();
     static String FORM;
@@ -73,7 +184,7 @@ public class Enrollmentform {
 
     public static void main(String[] args) throws Exception {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : Integer.parseInt(env("PORT", "8080"));
-        FORM = page("Enrollment Form", form(), JS);
+        FORM = page("Enrollment Form", form(), "const PLACES = " + placesJson() + ";\n" + JS);
         initStorage();
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/", ex -> {
@@ -281,6 +392,8 @@ public class Enrollmentform {
             String v = String.join("; ", in.getOrDefault(k, List.of())).replaceAll("\\s+", " ").trim().toUpperCase();
             row.put(k, v);
         }
+        row.put("syFrom", String.valueOf(SCHOOL_YEAR_START)); // cannot be changed from the browser
+        row.put("syTo", String.valueOf(SCHOOL_YEAR_END));
         saveRow(row);
 
         StringBuilder sb = new StringBuilder("<section class='card'><h2>Enrollment received</h2>")
@@ -392,6 +505,17 @@ public class Enrollmentform {
         return sb.append("</select></label>").toString();
     }
 
+    /** Dropdown with an "Others (type it)" choice that reveals a text box. Typed text is what gets saved. */
+    static String selOther(String name, String label, String role, Collection<String> options) {
+        KEYS.add(name);
+        LABELS.put(name, label);
+        StringBuilder sb = new StringBuilder("<label class='f'><span>" + esc(label) + "</span><select name='" + name + "' data-other"
+                + (role == null ? "" : " data-place='" + role + "'") + "><option value=''>Select</option>");
+        for (String o : options) sb.append("<option value='").append(esc(o)).append("'>").append(esc(o)).append("</option>");
+        return sb.append("<option value='__other__'>Others (type it)</option></select>")
+                .append("<input class='other-input' type='text' placeholder='Type it here' hidden></label>").toString();
+    }
+
     static String opts(String name, String legend, String type, String... labels) {
         if (!KEYS.contains(name)) KEYS.add(name);
         LABELS.put(name, legend);
@@ -413,14 +537,15 @@ public class Enrollmentform {
     static String sub(String title, String content) { return "<div class='sub'><h3>" + title + "</h3>" + content + "</div>"; }
 
     static String addr(String p, String who) {
-        return grid(3,
-                in(p + "House", "House no.", "text", ""),
-                in(p + "Street", "Sitio / Street name", "text", ""),
-                in(p + "Barangay", "Barangay", "text", ""),
-                in(p + "City", "Municipality / City", "text", ""),
-                in(p + "Province", "Province", "text", ""),
-                in(p + "Country", "Country", "text", "value='Philippines'"),
-                in(p + "Zip", "Zip code", "text", "inputmode='numeric' maxlength='4'"));
+        // Built in the original column order (so saved columns never move), shown in a friendlier order.
+        String house = in(p + "House", "House no.", "text", "");
+        String street = in(p + "Street", "Sitio / Street name", "text", "");
+        String brgy = selOther(p + "Barangay", "Barangay", "barangay", List.of());
+        String city = selOther(p + "City", "Municipality / City", "city", List.of());
+        String prov = selOther(p + "Province", "Province", "province", PROVINCE_LIST);
+        String country = in(p + "Country", "Country", "text", "value='Philippines'");
+        String zip = in(p + "Zip", "Zip code", "text", "inputmode='numeric' maxlength='4'");
+        return grid(3, prov, city, brgy, house, street, zip, country);
     }
 
     static String person(String p, String title) {
@@ -442,8 +567,8 @@ public class Enrollmentform {
         f.append("<form method='post' action='/submit'>");
 
         f.append(sec("1. School year and LRN", grid(3,
-                in("syFrom", "School year starts", "number", "min='2020' max='2100' required placeholder='2026'"),
-                in("syTo", "School year ends", "number", "min='2020' max='2100' required placeholder='2027'"),
+                in("syFrom", "School year starts", "number", "required readonly value='" + SCHOOL_YEAR_START + "'"),
+                in("syTo", "School year ends", "number", "required readonly value='" + SCHOOL_YEAR_END + "'"),
                 in("lrn", "Learner Reference No. (LRN), if applicable", "text",
                         "inputmode='numeric' maxlength='12' pattern='\\d{12}' title='12 digits' placeholder='12 digits'"))));
 
@@ -466,9 +591,10 @@ public class Enrollmentform {
                         in("birthdate", "Birthdate", "date", "required"),
                         in("age", "Age", "text", "readonly placeholder='auto'"),
                         sel("sex", "Sex", "Male", "Female"),
-                        in("birthPlace", "Place of birth (Municipality / City)", "text", ""))
+                        CITY_LIST.isEmpty() ? in("birthPlace", "Place of birth (Municipality / City)", "text", "")
+                                : selOther("birthPlace", "Place of birth (Municipality / City)", null, CITY_LIST))
                         + grid(2,
-                        in("religion", "Religion", "text", ""),
+                        selOther("religion", "Religion", null, Arrays.asList(RELIGIONS)),
                         in("motherTongue", "Mother tongue", "text", ""))
                         + opts("ip", "Belonging to any Indigenous Peoples (IP) community / Indigenous Cultural Community?", "radio", "Yes", "No")
                         + cond("ip:Yes", in("ipSpec", "Please specify", "text", ""))
@@ -823,6 +949,7 @@ public class Enrollmentform {
         .btn:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
         .btn.primary{color:var(--ac)}
         .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+        .other-input{margin-top:8px}
         .cert{margin:6px 0 20px;align-items:flex-start}.cert b{font-weight:600;line-height:1.45}
         .actions{display:flex;flex-wrap:wrap;gap:18px;margin-top:22px}
         .sum{display:grid;grid-template-columns:minmax(140px,240px) 1fr;gap:10px 20px;margin:0}
@@ -865,5 +992,61 @@ public class Enrollmentform {
         cert.addEventListener('change', syncCert);
         form.addEventListener('reset', () => setTimeout(syncCert));
         syncCert();
+
+        /* dropdowns with an "Others (type it)" box, and Province -> City -> Barangay */
+        function syncOther(sel){
+          const box = sel.parentElement.querySelector('.other-input');
+          if(!box) return;
+          const on = sel.value === '__other__';
+          box.hidden = !on;
+          if(!on) box.value = '';
+        }
+        function fillSelect(sel, items){
+          sel.innerHTML = '';
+          const first = document.createElement('option');
+          first.value = ''; first.textContent = 'Select';
+          sel.appendChild(first);
+          items.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+          const other = document.createElement('option');
+          other.value = '__other__'; other.textContent = 'Others (type it)';
+          sel.appendChild(other);
+        }
+        const provinceSelects = [...form.querySelectorAll('select[data-place=province]')];
+        function wireAddress(ps){
+          const prefix = ps.name.slice(0, -'Province'.length);
+          const cs = form.elements[prefix + 'City'], bs = form.elements[prefix + 'Barangay'];
+          function loadBarangays(){
+            const list = ((PLACES[ps.value] || {})[cs.value]) || [];
+            fillSelect(bs, list);
+            if(!list.length && cs.value) bs.value = '__other__';
+            syncOther(bs);
+          }
+          function loadCities(){
+            const list = Object.keys(PLACES[ps.value] || {});
+            fillSelect(cs, list);
+            if(!list.length && ps.value) cs.value = '__other__';
+            syncOther(cs);
+            loadBarangays();
+          }
+          ps.addEventListener('change', () => { syncOther(ps); loadCities(); });
+          cs.addEventListener('change', () => { syncOther(cs); loadBarangays(); });
+          bs.addEventListener('change', () => syncOther(bs));
+          loadCities();
+          return loadCities;
+        }
+        const reloaders = provinceSelects.map(wireAddress);
+        form.querySelectorAll('select[data-other]').forEach(s => s.addEventListener('change', () => syncOther(s)));
+        form.addEventListener('reset', () => setTimeout(() => {
+          form.querySelectorAll('select[data-other]').forEach(syncOther);
+          reloaders.forEach(r => r());
+        }));
+        form.addEventListener('submit', () => {
+          form.querySelectorAll('select[data-other]').forEach(s => {
+            if(s.value !== '__other__') return;
+            const t = s.parentElement.querySelector('.other-input').value.trim();
+            if(t){ const o = s.options[s.selectedIndex]; o.value = t; o.textContent = t; }
+            else { s.value = ''; }
+          });
+        });
         """;
 }
