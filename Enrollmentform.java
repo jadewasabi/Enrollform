@@ -337,29 +337,38 @@ public class Enrollmentform {
     static String records() throws IOException {
         StringBuilder sb = new StringBuilder("<section class='card'><h2>Saved enrollments</h2>");
         List<List<String>> all = USE_SHEETS ? readTab(TAB_ENROLL + "!A:ZZ") : readCsv(DB);
-        if (all.size() < 2) {
+        // Saved rows are always: timestamp, then every form field in KEYS order - so read by position, not by header text.
+        String[] cols = {"timestamp", "lrn", "lastName", "firstName", "grade", "syFrom", "fatherContact", "motherContact"};
+        String[] names = {"Saved at", "LRN", "Last name", "First name", "Grade", "School year", "Father's no.", "Mother's no."};
+        List<List<String>> rows = new ArrayList<>();
+        for (int i = all.size() - 1; i >= 1; i--) {
+            boolean empty = true;
+            for (String c : all.get(i)) if (!c.isBlank()) { empty = false; break; }
+            if (!empty) rows.add(all.get(i));
+        }
+        if (rows.isEmpty()) {
             sb.append("<p class='muted'>Nothing saved yet. Submit the form and the learner will show up here.</p>");
         } else {
-            List<String> head = all.get(0);
-            String[] cols = {"timestamp", "lrn", "lastName", "firstName", "grade", "syFrom", "fatherContact", "motherContact"};
-            String[] names = {"Saved at", "LRN", "Last name", "First name", "Grade", "School year", "Father's no.", "Mother's no."};
             sb.append("<div class='scroll'><table><tr>");
             for (String n : names) sb.append("<th>").append(n).append("</th>");
             sb.append("</tr>");
-            for (int i = all.size() - 1; i >= 1; i--) {
-                List<String> r = all.get(i);
+            for (List<String> r : rows) {
                 sb.append("<tr>");
                 for (String c : cols) {
-                    int idx = head.indexOf(c);
-                    sb.append("<td>").append(idx >= 0 && idx < r.size() ? esc(r.get(idx)) : "").append("</td>");
+                    int idx = c.equals("timestamp") ? 0 : KEYS.indexOf(c) + 1;
+                    sb.append("<td>").append(idx >= 1 || c.equals("timestamp") ? (idx < r.size() ? esc(r.get(idx)) : "") : "").append("</td>");
                 }
                 sb.append("</tr>");
             }
-            sb.append("</table></div><p class='muted'>").append(all.size() - 1)
+            sb.append("</table></div><p class='muted'>").append(rows.size())
                     .append(USE_SHEETS ? " learner(s). Full details are in your Google Sheet." : " learner(s). Full details are in enrollments.csv.")
                     .append("</p>");
         }
-        sb.append("<div class='actions'><a class='btn primary' href='/enroll'>New enrollment</a><a class='btn' href='/logout'>Log out</a></div></section>");
+        sb.append("<div class='actions'>");
+        if (USE_SHEETS)
+            sb.append("<a class='btn primary' target='_blank' rel='noopener' href='https://docs.google.com/spreadsheets/d/")
+                    .append(esc(SHEET_ID)).append("/edit#gid=").append(esc(enrollGid)).append("'>Open Google Sheet</a>");
+        sb.append("<a class='btn' href='/enroll'>New enrollment</a><a class='btn' href='/logout'>Log out</a></div></section>");
         return page("Records", sb.toString(), "");
     }
 
@@ -530,6 +539,7 @@ public class Enrollmentform {
     static String saEmail, saTokenUri, accessTok;
     static PrivateKey saKey;
     static long accessExp;
+    static String enrollGid = "0";
 
     static void initStorage() throws Exception {
         if (!USE_SHEETS) {
@@ -538,7 +548,7 @@ public class Enrollmentform {
             return;
         }
         loadCredentials();
-        ensureTab(TAB_ENROLL);
+        enrollGid = ensureTab(TAB_ENROLL);
         ensureTab(TAB_USERS);
         List<String> eh = new ArrayList<>();
         eh.add("timestamp");
@@ -624,8 +634,10 @@ public class Enrollmentform {
         return sb.append("]]}").toString();
     }
 
+    /** Writes the row straight under the last used row of column A (callers are synchronized). */
     static void appendSheet(String tab, List<String> cells) throws IOException {
-        sheets("POST", "/values/" + enc(tab + "!A1") + ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", rowsJson(cells));
+        int next = readTab(tab + "!A:A").size() + 1;
+        sheets("PUT", "/values/" + enc(tab + "!A" + next) + "?valueInputOption=RAW", rowsJson(cells));
     }
 
     @SuppressWarnings("unchecked")
@@ -641,13 +653,25 @@ public class Enrollmentform {
         return out;
     }
 
+    /** Makes sure the tab exists and returns its numeric id (used for the "Open Google Sheet" link). */
     @SuppressWarnings("unchecked")
-    static void ensureTab(String title) throws IOException {
-        Map<String, Object> meta = (Map<String, Object>) sheets("GET", "?fields=sheets.properties.title", null);
+    static String ensureTab(String title) throws IOException {
+        Map<String, Object> meta = (Map<String, Object>) sheets("GET", "?fields=sheets.properties(sheetId,title)", null);
         if (meta != null && meta.get("sheets") instanceof List<?> l)
-            for (Object o : l)
-                if (title.equals(((Map<String, Object>) ((Map<String, Object>) o).get("properties")).get("title"))) return;
-        sheets("POST", ":batchUpdate", "{\"requests\":[{\"addSheet\":{\"properties\":{\"title\":" + jq(title) + "}}}]}");
+            for (Object o : l) {
+                Map<String, Object> pr = (Map<String, Object>) ((Map<String, Object>) o).get("properties");
+                if (title.equals(pr.get("title"))) return gidOf(pr);
+            }
+        Map<String, Object> made = (Map<String, Object>) sheets("POST", ":batchUpdate",
+                "{\"requests\":[{\"addSheet\":{\"properties\":{\"title\":" + jq(title) + "}}}]}");
+        try {
+            Map<String, Object> reply = (Map<String, Object>) ((List<Object>) made.get("replies")).get(0);
+            return gidOf((Map<String, Object>) ((Map<String, Object>) reply.get("addSheet")).get("properties"));
+        } catch (RuntimeException e) { return "0"; }
+    }
+
+    static String gidOf(Map<String, Object> props) {
+        return props.get("sheetId") instanceof Number n ? String.valueOf(n.longValue()) : "0";
     }
 
     static void ensureHeader(String tab, List<String> header) throws IOException {
@@ -842,4 +866,4 @@ public class Enrollmentform {
         form.addEventListener('reset', () => setTimeout(syncCert));
         syncCert();
         """;
-            }
+}
