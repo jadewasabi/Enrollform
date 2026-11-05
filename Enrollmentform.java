@@ -1,6 +1,9 @@
 package enrollmentform;
 
-import com.sun.net.httpserver.HttpServer;
+
+//public class Enrollmentform {
+
+    import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -11,31 +14,53 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
- 
-/**
- * run muna tong java guys tapos yung index dapat nasa labas ng folder nito katabi ng build.xml
- * useless pa to:  http://localhost:8080            
- *        http://localhost:8080/enroll      
- *        http://localhost:8020/records     
- *
- * 
- 
- * Data: enrollments.csv (learners) tas users.csv (accounts, salted+hashed passwords).
- */
 
-//dito gumagawa variables 
+/**
+ * Basic Education Enrollment Form (DepEd, rev. 06/01/2025) as a Java app.
+ * Pure JDK, no libraries. Requires Java 17+.
+ *
+ * Run:   java Enrollmentform.java      (keep index.html in the same folder)
+ * Open:  http://localhost:8080            login / create account (index.html)
+ *        http://localhost:8080/enroll      enrollment form (any signed-in user)
+ *        http://localhost:8080/records     saved enrollments (ADMIN ONLY)
+ *
+ * Admin account: set ENROLL_ADMIN_EMAIL and ENROLL_ADMIN_PASSWORD before running
+ * (defaults below are for testing only - change them).
+ * Storage (pick one):
+ *   - Google Sheets (survives restarts/redeploys on any host): set GOOGLE_SHEET_ID and
+ *     GOOGLE_SERVICE_ACCOUNT_JSON (the key file's contents, or that text base64-encoded)
+ *     or GOOGLE_SERVICE_ACCOUNT_FILE (path to the key file). Tabs "Enrollments" and "Users"
+ *     are created automatically.
+ *   - CSV files (default): enrollments.csv and users.csv inside DATA_DIR (default: current folder).
+ * On a host like Render, PORT is read automatically.
+ */
 public class Enrollmentform {
- 
-    static final Path DB = Paths.get("enrollments.csv");
-    static final Path USERS = Paths.get("users.csv");
-    static final Path INDEX = Paths.get("index.html");
-    static final String ADMIN_EMAIL = env("ENROLL_ADMIN_EMAIL", "THSANNEX2026").toLowerCase();
-    static final String ADMIN_PASSWORD = env("ENROLL_ADMIN_PASSWORD", "admin3018");
+
+    static final Path DATA = Paths.get(env("DATA_DIR", "."));
+    static final Path DB = DATA.resolve("enrollments.csv");
+    static final Path USERS = DATA.resolve("users.csv");
+    static final Path INDEX = findIndex();
+    static Path findIndex() {
+        for (String f : new String[]{"index.html", "src/index.html", "src/enrollmentform/index.html"})
+            if (Files.exists(Paths.get(f))) return Paths.get(f);
+        return Paths.get("index.html");
+    }
+    static final String ADMIN_EMAIL = env("ENROLL_ADMIN_EMAIL", "admin@school.com").toLowerCase();
+    static final String ADMIN_PASSWORD = env("ENROLL_ADMIN_PASSWORD", "admin123");
     static final Map<String, String[]> SESSIONS = new ConcurrentHashMap<>(); // token -> {email, role}
     static final SecureRandom RNG = new SecureRandom();
     static class BadRequest extends RuntimeException { BadRequest(String m) { super(m); } }
@@ -43,14 +68,13 @@ public class Enrollmentform {
     static final List<String> KEYS = new ArrayList<>();
     static final Map<String, String> LABELS = new HashMap<>();
     static String FORM;
-    
 
-    
- //logic to di ko maexplain ahah
+    // ---------------------------------------------------------------- server
+
     public static void main(String[] args) throws Exception {
-        int port = args.length > 0 ? Integer.parseInt(args[0]) : 8070;
+        int port = args.length > 0 ? Integer.parseInt(args[0]) : Integer.parseInt(env("PORT", "8080"));
         FORM = page("Enrollment Form", form(), JS);
-        archiveOldCsv();
+        initStorage();
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/", ex -> {
             try {
@@ -58,7 +82,7 @@ public class Enrollmentform {
                 boolean get = method.equals("GET"), post = method.equals("POST");
                 String[] user = currentUser(ex);
                 boolean admin = user != null && user[1].equals("admin");
- 
+
                 if (path.equals("/") && get) {
                     if (user != null) redirect(ex, admin ? "/records" : "/enroll");
                     else if (!Files.exists(INDEX)) send(ex, 500, page("Missing file",
@@ -97,15 +121,14 @@ public class Enrollmentform {
         System.out.println("Admin sign-in: " + ADMIN_EMAIL + (ADMIN_PASSWORD.equals("admin123")
                 ? "  (default password - set ENROLL_ADMIN_PASSWORD before real use)" : ""));
     }
- 
-    //bar
+
     static String nav(boolean admin) {
         return "<div class='actions' style='margin:0'>" + (admin ? "<a class='btn' href='/records'>Records</a>" : "")
                 + "<a class='btn' href='/logout'>Log out</a></div>";
     }
- 
-   
-   //https
+
+    // ----------------------------------------------------------- http helpers
+
     static void send(HttpExchange ex, int code, String html) throws IOException {
         byte[] b = html.getBytes(StandardCharsets.UTF_8);
         ex.getResponseHeaders().set("Content-Type", "text/html; charset=utf-8");
@@ -114,7 +137,7 @@ public class Enrollmentform {
         ex.getResponseBody().write(b);
         ex.close();
     }
- 
+
     static void json(HttpExchange ex, String j) throws IOException {
         byte[] b = j.getBytes(StandardCharsets.UTF_8);
         ex.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
@@ -123,18 +146,18 @@ public class Enrollmentform {
         ex.getResponseBody().write(b);
         ex.close();
     }
- 
+
     static void redirect(HttpExchange ex, String to) throws IOException {
         ex.getResponseHeaders().set("Location", to);
         ex.getResponseHeaders().set("Cache-Control", "no-store");
         ex.sendResponseHeaders(302, -1);
         ex.close();
     }
- 
+
     static String body(HttpExchange ex) throws IOException {
         return new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
     }
- 
+
     static Map<String, List<String>> parseForm(String body) {
         Map<String, List<String>> in = new HashMap<>();
         for (String pair : body.split("&")) {
@@ -146,17 +169,17 @@ public class Enrollmentform {
         }
         return in;
     }
- 
+
     static String first(Map<String, List<String>> in, String k) {
         List<String> l = in.get(k);
         return l == null || l.isEmpty() ? "" : l.get(0);
     }
- 
+
     // ------------------------------------------------------- accounts/sessions
- 
-    static String ok(String redirectTo) { return "{\"ok\":true,\"redirect\":\"" + redirectTo + "\"}"; }
-    static String err(String msg) { return "{\"ok\":false,\"error\":\"" + msg + "\"}"; }
- 
+
+    static String ok(String redirectTo) { return "{\"ok\":true,\"redirect\"😕"" + redirectTo + "\"}"; }
+    static String err(String msg) { return "{\"ok\":false,\"error\"😕"" + msg + "\"}"; }
+
     static synchronized String signup(HttpExchange ex) throws IOException {
         Map<String, List<String>> in = parseForm(body(ex));
         String name = first(in, "name").trim().replaceAll("\\s+", " ");
@@ -168,16 +191,12 @@ public class Enrollmentform {
         if (email.equals(ADMIN_EMAIL) || findUser(email) != null) return err("That email is already registered.");
         byte[] salt = new byte[16];
         RNG.nextBytes(salt);
-        StringBuilder sb = new StringBuilder()
-                .append(csv(email)).append(',').append(csv(Base64.getEncoder().encodeToString(salt))).append(',')
-                .append(csv(hash(pw, salt))).append(',').append(csv(name)).append(',')
-                .append(csv(LocalDateTime.now().withNano(0).toString())).append('\n');
-        Files.writeString(USERS, sb.toString(), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        addUser(email, Base64.getEncoder().encodeToString(salt), hash(pw, salt), name,
+                LocalDateTime.now().withNano(0).toString());
         startSession(ex, email, "user");
         return ok("/enroll");
     }
- 
-    //signin
+
     static String signin(HttpExchange ex) throws IOException {
         Map<String, List<String>> in = parseForm(body(ex));
         String email = first(in, "email").trim().toLowerCase(), pw = first(in, "password");
@@ -194,8 +213,7 @@ public class Enrollmentform {
         startSession(ex, email, "user");
         return ok("/enroll");
     }
- 
-    //pw
+
     static String hash(String pw, byte[] salt) {
         try {
             var spec = new PBEKeySpec(pw.toCharArray(), salt, 120_000, 256);
@@ -203,29 +221,31 @@ public class Enrollmentform {
                     SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded());
         } catch (GeneralSecurityException e) { throw new RuntimeException(e); }
     }
- 
-    //kung gawa nba acc
+
     static synchronized String[] findUser(String email) throws IOException {
-        if (!Files.exists(USERS)) return null;
-        for (String line : Files.readAllLines(USERS, StandardCharsets.UTF_8)) {
-            List<String> c = parseCsv(line);
+        for (List<String> c : USE_SHEETS ? readTab(TAB_USERS + "!A:E") : readCsv(USERS))
             if (c.size() >= 3 && c.get(0).equals(email)) return new String[]{c.get(0), c.get(1), c.get(2)};
-        }
         return null;
     }
- 
+
+    static synchronized void addUser(String email, String salt, String hash, String name, String created) throws IOException {
+        if (USE_SHEETS) { appendSheet(TAB_USERS, List.of(email, salt, hash, name, created)); return; }
+        String line = csv(email) + "," + csv(salt) + "," + csv(hash) + "," + csv(name) + "," + csv(created) + "\n";
+        Files.writeString(USERS, line, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    }
+
     static String sessionToken(HttpExchange ex) {
         String h = ex.getRequestHeaders().getFirst("Cookie");
         if (h == null) return null;
         for (String p : h.split(";")) { p = p.trim(); if (p.startsWith("sid=")) return p.substring(4); }
         return null;
     }
- 
+
     static String[] currentUser(HttpExchange ex) {
         String t = sessionToken(ex);
         return t == null ? null : SESSIONS.get(t);
     }
- 
+
     static void startSession(HttpExchange ex, String email, String role) {
         byte[] b = new byte[32];
         RNG.nextBytes(b);
@@ -233,25 +253,25 @@ public class Enrollmentform {
         SESSIONS.put(t, new String[]{email, role});
         ex.getResponseHeaders().add("Set-Cookie", "sid=" + t + "; Path=/; HttpOnly; SameSite=Lax");
     }
- 
+
     static void logout(HttpExchange ex) {
         String t = sessionToken(ex);
         if (t != null) SESSIONS.remove(t);
         ex.getResponseHeaders().add("Set-Cookie", "sid=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
     }
- 
-    
+
+    /** The certification column changed, so an enrollments.csv with the old layout is set aside instead of mixed with new rows. */
     static void archiveOldCsv() throws IOException {
         if (!Files.exists(DB)) return;
         List<String> lines = Files.readAllLines(DB, StandardCharsets.UTF_8);
         if (!lines.isEmpty() && lines.get(0).equals("timestamp," + String.join(",", KEYS))) return;
-        Path old = Paths.get("enrollments-old-" + LocalDateTime.now().withNano(0).toString().replace(':', '-') + ".csv");
+        Path old = DATA.resolve("enrollments-old-" + LocalDateTime.now().withNano(0).toString().replace(':', '-') + ".csv");
         Files.move(DB, old);
         System.out.println("enrollments.csv had the old layout; moved to " + old);
     }
- 
-    
-    //sinisave, 
+
+    // ---------------------------------------------------------- submit/save
+
     static String submit(HttpExchange ex, boolean admin) throws IOException {
         Map<String, List<String>> in = parseForm(body(ex));
         if (!in.containsKey("certify"))
@@ -262,7 +282,7 @@ public class Enrollmentform {
             row.put(k, v);
         }
         saveRow(row);
- 
+
         StringBuilder sb = new StringBuilder("<section class='card'><h2>Enrollment received</h2>")
                 .append("<p class='muted'>Print this page and hand it to the registrar or class adviser.</p><dl class='sum'>");
         for (var e : row.entrySet()) {
@@ -276,18 +296,26 @@ public class Enrollmentform {
                 .append("<a class='btn' href='/logout'>Log out</a></div></section>");
         return page("Enrollment received", sb.toString(), "");
     }
- 
+
     static synchronized void saveRow(Map<String, String> row) throws IOException {
+        String stamp = LocalDateTime.now().withNano(0).toString();
+        if (USE_SHEETS) {
+            List<String> cells = new ArrayList<>();
+            cells.add(stamp);
+            cells.addAll(row.values());
+            appendSheet(TAB_ENROLL, cells);
+            return;
+        }
         StringBuilder sb = new StringBuilder();
         if (!Files.exists(DB)) sb.append("timestamp,").append(String.join(",", KEYS)).append('\n');
-        sb.append(csv(LocalDateTime.now().withNano(0).toString()));
+        sb.append(csv(stamp));
         for (String v : row.values()) sb.append(',').append(csv(v));
         sb.append('\n');
         Files.writeString(DB, sb.toString(), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
- 
+
     static String csv(String v) { return "\"" + v.replace("\"", "\"\"") + "\""; }
- 
+
     static List<String> parseCsv(String line) {
         List<String> out = new ArrayList<>();
         StringBuilder cur = new StringBuilder();
@@ -305,22 +333,21 @@ public class Enrollmentform {
         out.add(cur.toString());
         return out;
     }
- 
-    //records
+
     static String records() throws IOException {
         StringBuilder sb = new StringBuilder("<section class='card'><h2>Saved enrollments</h2>");
-        if (!Files.exists(DB)) {
+        List<List<String>> all = USE_SHEETS ? readTab(TAB_ENROLL + "!A:ZZ") : readCsv(DB);
+        if (all.size() < 2) {
             sb.append("<p class='muted'>Nothing saved yet. Submit the form and the learner will show up here.</p>");
         } else {
-            List<String> lines = Files.readAllLines(DB, StandardCharsets.UTF_8);
-            List<String> head = parseCsv(lines.get(0));
+            List<String> head = all.get(0);
             String[] cols = {"timestamp", "lrn", "lastName", "firstName", "grade", "syFrom", "fatherContact", "motherContact"};
             String[] names = {"Saved at", "LRN", "Last name", "First name", "Grade", "School year", "Father's no.", "Mother's no."};
             sb.append("<div class='scroll'><table><tr>");
             for (String n : names) sb.append("<th>").append(n).append("</th>");
             sb.append("</tr>");
-            for (int i = lines.size() - 1; i >= 1; i--) {
-                List<String> r = parseCsv(lines.get(i));
+            for (int i = all.size() - 1; i >= 1; i--) {
+                List<String> r = all.get(i);
                 sb.append("<tr>");
                 for (String c : cols) {
                     int idx = head.indexOf(c);
@@ -328,25 +355,26 @@ public class Enrollmentform {
                 }
                 sb.append("</tr>");
             }
-            sb.append("</table></div><p class='muted'>").append(lines.size() - 1)
-                    .append(" learner(s). Full details are in enrollments.csv.</p>");
+            sb.append("</table></div><p class='muted'>").append(all.size() - 1)
+                    .append(USE_SHEETS ? " learner(s). Full details are in your Google Sheet." : " learner(s). Full details are in enrollments.csv.")
+                    .append("</p>");
         }
         sb.append("<div class='actions'><a class='btn primary' href='/enroll'>New enrollment</a><a class='btn' href='/logout'>Log out</a></div></section>");
         return page("Records", sb.toString(), "");
     }
- 
+
     static String esc(String s) {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("'", "&#39;").replace("\"", "&quot;");
     }
- 
+
     // ------------------------------------------------------- HTML builders
- 
+
     static String in(String name, String label, String type, String attrs) {
         KEYS.add(name);
         LABELS.put(name, label);
         return "<label class='f'><span>" + label + "</span><input name='" + name + "' type='" + type + "' " + attrs + "></label>";
     }
- 
+
     static String sel(String name, String label, String... options) {
         KEYS.add(name);
         LABELS.put(name, label);
@@ -354,7 +382,7 @@ public class Enrollmentform {
         for (String o : options) sb.append("<option>").append(o).append("</option>");
         return sb.append("</select></label>").toString();
     }
- 
+
     static String opts(String name, String legend, String type, String... labels) {
         if (!KEYS.contains(name)) KEYS.add(name);
         LABELS.put(name, legend);
@@ -364,17 +392,17 @@ public class Enrollmentform {
                     .append("' value='").append(l).append("'><i></i><b>").append(l).append("</b></label>");
         return sb.append("</div></fieldset>").toString();
     }
- 
+
     static String grid(int cols, String... items) {
         return "<div class='grid g" + cols + "'>" + String.join("", items) + "</div>";
     }
- 
+
     static String cond(String rule, String content) { return "<div class='cond' data-if='" + rule + "'>" + content + "</div>"; }
- 
+
     static String sec(String title, String content) { return "<section class='card'><h2>" + title + "</h2>" + content + "</section>"; }
- 
+
     static String sub(String title, String content) { return "<div class='sub'><h3>" + title + "</h3>" + content + "</div>"; }
- 
+
     static String addr(String p, String who) {
         return grid(3,
                 in(p + "House", "House no.", "text", ""),
@@ -385,7 +413,7 @@ public class Enrollmentform {
                 in(p + "Country", "Country", "text", "value='Philippines'"),
                 in(p + "Zip", "Zip code", "text", "inputmode='numeric' maxlength='4'"));
     }
- 
+
     static String person(String p, String title) {
         return sub(title, grid(4,
                 in(p + "Last", "Last name", "text", ""),
@@ -393,23 +421,23 @@ public class Enrollmentform {
                 in(p + "Middle", "Middle name", "text", ""),
                 in(p + "Contact", "Contact number", "tel", "inputmode='tel'")));
     }
- 
+
     static String form() {
-        String[] grades = {"Grade 7",
+        String[] grades = {"Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7",
                 "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"};
         StringBuilder f = new StringBuilder();
         f.append("<header class='hero'><div class='seal' aria-hidden='true'>DepEd</div><div>")
-                .append("<h1>Education Enrollment Form</h1>")
-                .append("<p class='muted'>Fill in every field that applies. Answers are saved in capital letters.</p>")
+                .append("<h1>Basic Education Enrollment Form</h1>")
+                .append("<p class='muted'>Fill in every field that applies. Answers are saved in capital letters. Revised as of 06/01/2025.</p>")
                 .append("</div>{{NAV}}</header>");
         f.append("<form method='post' action='/submit'>");
- 
+
         f.append(sec("1. School year and LRN", grid(3,
                 in("syFrom", "School year starts", "number", "min='2020' max='2100' required placeholder='2026'"),
                 in("syTo", "School year ends", "number", "min='2020' max='2100' required placeholder='2027'"),
                 in("lrn", "Learner Reference No. (LRN), if applicable", "text",
                         "inputmode='numeric' maxlength='12' pattern='\\d{12}' title='12 digits' placeholder='12 digits'"))));
- 
+
         f.append(sec("2. Grade level to enroll",
                 opts("gradeType", "Type of enrollment", "radio", "Graded", "Non-graded (SNEd only)")
                         + cond("gradeType:Graded", sel("grade", "Grade level", grades))
@@ -417,7 +445,7 @@ public class Enrollmentform {
                         sub("For kindergarten enrollees",
                                 opts("earlyProgram", "Has the learner attended any early learning program?", "radio", "Yes", "No")
                                         + cond("earlyProgram:Yes", in("earlyProgramSpec", "Please specify", "text", ""))))));
- 
+
         f.append(sec("3. Learner's personal information",
                 in("psa", "PSA Birth Certificate No. (if available upon registration)", "text", "")
                         + grid(4,
@@ -440,10 +468,10 @@ public class Enrollmentform {
                         + sub("Current address", addr("cur", "current"))
                         + opts("permSame", "Is your permanent address the same as your current address?", "radio", "Yes", "No")
                         + cond("permSame:No", sub("Permanent address", addr("perm", "permanent")))));
- 
+
         f.append(sec("4. Parent's / Guardian's information",
                 person("father", "Father's name") + person("mother", "Mother's maiden name") + person("guardian", "Legal guardian's name")));
- 
+
         String[] a1 = {"Attention Deficit Hyperactivity Disorder", "Autism Spectrum Disorder", "Cerebral Palsy",
                 "Emotional-Behavior Disorder", "Hearing Impairment", "Intellectual Disability", "Learning Disability",
                 "Multiple Disabilities", "Orthopedic/Physical Handicap", "Speech/Language Disorder",
@@ -460,22 +488,22 @@ public class Enrollmentform {
                                 + opts("diagnosis", "a1. With diagnosis from a licensed medical specialist", "checkbox", a1)
                                 + opts("manifest", "a2. With manifestations", "checkbox", a2)
                                 + opts("pwdId", "b. Does the learner have a PWD ID?", "radio", "Yes", "No"))));
- 
+
         f.append(sec("6. Returning learner (Balik-Aral) or transferring / moving in", grid(2,
                 in("lastGrade", "Last grade level completed", "text", ""),
                 in("lastSY", "Last school year completed", "text", "placeholder='2025-2026'"),
                 in("lastSchool", "Last school attended", "text", ""),
                 in("lastSchoolId", "School ID", "text", "inputmode='numeric' maxlength='6'"))));
- 
+
         f.append(cond("grade:Grade 11|Grade 12", sec("7. Senior High School",
                 opts("semester", "Semester", "radio", "1st", "2nd")
                         + grid(2, in("track", "Track", "text", ""), in("strand", "Strand", "text", "")))));
- 
+
         f.append(sec("8. Distance learning preference",
                 opts("modality", "If the school will use other distance learning modalities aside from face-to-face instruction, what would you prefer for your child? Check all that apply.",
                         "checkbox", "Blended (Combination)", "Homeschooling", "Modular (Print)", "Radio-Based Television",
                         "Educational Television", "Modular (Digital)", "Online")));
- 
+
         KEYS.add("certify");
         LABELS.put("certify", "Certification accepted");
         f.append(sec("Certification",
@@ -485,12 +513,238 @@ public class Enrollmentform {
                         + grid(3, in("signDate", "Date", "date", "required value='" + LocalDate.now() + "'"))
                         + "<div class='actions'><button class='btn primary' id='submitBtn' type='submit' disabled>Submit enrollment</button>"
                         + "<button class='btn' type='reset'>Clear form</button></div>"));
- 
+
         return f.append("</form>").toString();
     }
- 
+
+    // ------------------------------------------------------------ storage
+    // Google Sheets when GOOGLE_SHEET_ID + credentials are set, otherwise CSV files. Pure JDK, no libraries.
+
+    static final String SHEET_ID = env("GOOGLE_SHEET_ID", "");
+    static final String SA_JSON = env("GOOGLE_SERVICE_ACCOUNT_JSON", "");
+    static final String SA_FILE = env("GOOGLE_SERVICE_ACCOUNT_FILE", "");
+    static final boolean USE_SHEETS = !SHEET_ID.isEmpty() && (!SA_JSON.isEmpty() || !SA_FILE.isEmpty());
+    static final String SHEETS_BASE = env("GOOGLE_SHEETS_BASE", "https://sheets.googleapis.com");
+    static final String TAB_ENROLL = "Enrollments", TAB_USERS = "Users";
+    static final HttpClient HTTP = HttpClient.newHttpClient();
+    static String saEmail, saTokenUri, accessTok;
+    static PrivateKey saKey;
+    static long accessExp;
+
+    static void initStorage() throws Exception {
+        if (!USE_SHEETS) {
+            archiveOldCsv();
+            System.out.println("Storage: CSV files in " + DATA.toAbsolutePath());
+            return;
+        }
+        loadCredentials();
+        ensureTab(TAB_ENROLL);
+        ensureTab(TAB_USERS);
+        List<String> eh = new ArrayList<>();
+        eh.add("timestamp");
+        eh.addAll(KEYS);
+        ensureHeader(TAB_ENROLL, eh);
+        ensureHeader(TAB_USERS, List.of("email", "salt", "hash", "name", "created"));
+        System.out.println("Storage: Google Sheet " + SHEET_ID + " (signed in as " + saEmail + ")");
+    }
+
+    static List<List<String>> readCsv(Path p) throws IOException {
+        List<List<String>> out = new ArrayList<>();
+        if (!Files.exists(p)) return out;
+        for (String l : Files.readAllLines(p, StandardCharsets.UTF_8)) if (!l.isEmpty()) out.add(parseCsv(l));
+        return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    static void loadCredentials() throws Exception {
+        String raw = !SA_JSON.isEmpty() ? SA_JSON.trim() : Files.readString(Paths.get(SA_FILE), StandardCharsets.UTF_8).trim();
+        if (!raw.startsWith("{")) raw = new String(Base64.getMimeDecoder().decode(raw), StandardCharsets.UTF_8);
+        Map<String, Object> j = (Map<String, Object>) new Json(raw).parse();
+        saEmail = (String) j.get("client_email");
+        saTokenUri = j.get("token_uri") instanceof String u ? u : "https://oauth2.googleapis.com/token";
+        String pem = ((String) j.get("private_key")).replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "").replaceAll("\\s", "");
+        saKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(pem)));
+    }
+
+    @SuppressWarnings("unchecked")
+    static synchronized String accessToken() throws IOException {
+        if (accessTok != null && System.currentTimeMillis() < accessExp - 60_000) return accessTok;
+        try {
+            long now = System.currentTimeMillis() / 1000;
+            String h = b64url("{\"alg\"😕"RS256\",\"typ\"😕"JWT\"}");
+            String c = b64url("{\"iss\":" + jq(saEmail) + ",\"scope\"😕"https://www.googleapis.com/auth/spreadsheets\",\"aud\":"
+                    + jq(saTokenUri) + ",\"iat\":" + now + ",\"exp\":" + (now + 3600) + "}");
+            Signature sg = Signature.getInstance("SHA256withRSA");
+            sg.initSign(saKey);
+            sg.update((h + "." + c).getBytes(StandardCharsets.UTF_8));
+            String jwt = h + "." + c + "." + Base64.getUrlEncoder().withoutPadding().encodeToString(sg.sign());
+            HttpRequest rq = HttpRequest.newBuilder(URI.create(saTokenUri))
+                    .header("Content-Type", "application/x-www-form-urlencoded").timeout(java.time.Duration.ofSeconds(20))
+                    .POST(HttpRequest.BodyPublishers.ofString("grant_type="
+                            + URLEncoder.encode("urn:ietf:params:oauth:grant-type:jwt-bearer", StandardCharsets.UTF_8)
+                            + "&assertion=" + jwt)).build();
+            HttpResponse<String> rs = HTTP.send(rq, HttpResponse.BodyHandlers.ofString());
+            if (rs.statusCode() != 200) throw new IOException("Google sign-in failed (" + rs.statusCode() + "): " + rs.body());
+            Map<String, Object> m = (Map<String, Object>) new Json(rs.body()).parse();
+            accessTok = (String) m.get("access_token");
+            accessExp = System.currentTimeMillis() + ((Number) m.get("expires_in")).longValue() * 1000;
+            return accessTok;
+        } catch (IOException e) {
+            throw e;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while contacting Google", e);
+        } catch (Exception e) {
+            throw new IOException("Google sign-in failed: " + e, e);
+        }
+    }
+
+    static Object sheets(String method, String path, String body) throws IOException {
+        try {
+            HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(SHEETS_BASE + "/v4/spreadsheets/" + SHEET_ID + path))
+                    .header("Authorization", "Bearer " + accessToken()).header("Content-Type", "application/json")
+                    .timeout(java.time.Duration.ofSeconds(20));
+            b.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
+            HttpResponse<String> rs = HTTP.send(b.build(), HttpResponse.BodyHandlers.ofString());
+            if (rs.statusCode() / 100 != 2)
+                throw new IOException("Google Sheets error " + rs.statusCode() + ": " + rs.body());
+            return rs.body().isBlank() ? null : new Json(rs.body()).parse();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while contacting Google Sheets", e);
+        }
+    }
+
+    static String enc(String v) { return URLEncoder.encode(v, StandardCharsets.UTF_8); }
+
+    static String rowsJson(List<String> cells) {
+        StringBuilder sb = new StringBuilder("{\"values\":[[");
+        for (int i = 0; i < cells.size(); i++) sb.append(i > 0 ? "," : "").append(jq(cells.get(i)));
+        return sb.append("]]}").toString();
+    }
+
+    static void appendSheet(String tab, List<String> cells) throws IOException {
+        sheets("POST", "/values/" + enc(tab + "!A1") + ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", rowsJson(cells));
+    }
+
+    @SuppressWarnings("unchecked")
+    static List<List<String>> readTab(String a1) throws IOException {
+        Map<String, Object> m = (Map<String, Object>) sheets("GET", "/values/" + enc(a1), null);
+        List<List<String>> out = new ArrayList<>();
+        if (m == null || !(m.get("values") instanceof List<?> rows)) return out;
+        for (Object r : rows) {
+            List<String> row = new ArrayList<>();
+            for (Object c : (List<Object>) r) row.add(c == null ? "" : String.valueOf(c));
+            out.add(row);
+        }
+        return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    static void ensureTab(String title) throws IOException {
+        Map<String, Object> meta = (Map<String, Object>) sheets("GET", "?fields=sheets.properties.title", null);
+        if (meta != null && meta.get("sheets") instanceof List<?> l)
+            for (Object o : l)
+                if (title.equals(((Map<String, Object>) ((Map<String, Object>) o).get("properties")).get("title"))) return;
+        sheets("POST", ":batchUpdate", "{\"requests\":[{\"addSheet\":{\"properties\":{\"title\":" + jq(title) + "}}}]}");
+    }
+
+    static void ensureHeader(String tab, List<String> header) throws IOException {
+        List<List<String>> r = readTab(tab + "!1:1");
+        if (r.isEmpty() || r.get(0).isEmpty()) {
+            sheets("PUT", "/values/" + enc(tab + "!A1") + "?valueInputOption=RAW", rowsJson(header));
+        } else if (!r.get(0).equals(header)) {
+            System.out.println("WARNING: the first row of the '" + tab + "' tab does not match what this program saves. "
+                    + "Use an empty tab (or fix the header row) or the columns will be misaligned.");
+        }
+    }
+
+    static String b64url(String v) { return Base64.getUrlEncoder().withoutPadding().encodeToString(v.getBytes(StandardCharsets.UTF_8)); }
+
+    static String jq(String v) {
+        StringBuilder b = new StringBuilder("\"");
+        for (char c : v.toCharArray()) {
+            switch (c) {
+                case '"' -> b.append("\\\"");
+                case '\\' -> b.append("\\\\");
+                case '\n' -> b.append("\\n");
+                case '\r' -> b.append("\\r");
+                case '\t' -> b.append("\\t");
+                default -> { if (c < 0x20) b.append(String.format("\\u%04x", (int) c)); else b.append(c); }
+            }
+        }
+        return b.append('"').toString();
+    }
+
+    /** Tiny JSON reader: objects -> Map, arrays -> List, strings, numbers (Double), booleans, null. */
+    static final class Json {
+        final String s;
+        int i;
+        Json(String s) { this.s = s; }
+        Object parse() { Object v = value(); ws(); return v; }
+        void ws() { while (i < s.length() && Character.isWhitespace(s.charAt(i))) i++; }
+        Object value() {
+            ws();
+            char c = s.charAt(i);
+            if (c == '{') {
+                i++;
+                Map<String, Object> m = new LinkedHashMap<>();
+                ws();
+                if (s.charAt(i) == '}') { i++; return m; }
+                while (true) {
+                    ws();
+                    String k = str();
+                    ws();
+                    i++; // ':'
+                    m.put(k, value());
+                    ws();
+                    if (s.charAt(i++) == '}') return m;
+                }
+            }
+            if (c == '[') {
+                i++;
+                List<Object> l = new ArrayList<>();
+                ws();
+                if (s.charAt(i) == ']') { i++; return l; }
+                while (true) {
+                    l.add(value());
+                    ws();
+                    if (s.charAt(i++) == ']') return l;
+                }
+            }
+            if (c == '"') return str();
+            if (s.startsWith("true", i)) { i += 4; return Boolean.TRUE; }
+            if (s.startsWith("false", i)) { i += 5; return Boolean.FALSE; }
+            if (s.startsWith("null", i)) { i += 4; return null; }
+            int st = i;
+            while (i < s.length() && "+-0123456789.eE".indexOf(s.charAt(i)) >= 0) i++;
+            return Double.valueOf(s.substring(st, i));
+        }
+        String str() {
+            i++;
+            StringBuilder b = new StringBuilder();
+            while (true) {
+                char c = s.charAt(i++);
+                if (c == '"') return b.toString();
+                if (c == '\\') {
+                    char e = s.charAt(i++);
+                    switch (e) {
+                        case 'n' -> b.append('\n');
+                        case 't' -> b.append('\t');
+                        case 'r' -> b.append('\r');
+                        case 'b' -> b.append('\b');
+                        case 'f' -> b.append('\f');
+                        case 'u' -> { b.append((char) Integer.parseInt(s.substring(i, i + 4), 16)); i += 4; }
+                        default -> b.append(e);
+                    }
+                } else b.append(c);
+            }
+        }
+    }
+
     // ------------------------------------------------------------- page shell
- 
+
     static String page(String title, String body, String script) {
         return "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
                 + "<meta name='viewport' content='width=device-width,initial-scale=1'><title>" + esc(title) + "</title>"
@@ -498,7 +752,7 @@ public class Enrollmentform {
                 + "<link href='https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap' rel='stylesheet'>"
                 + "<style>" + CSS + "</style></head><body><main class='wrap'>" + body + "</main><script>" + script + "</script></body></html>";
     }
- 
+
     static final String CSS = """
         :root{--bg:#e4e9f1;--hi:#ffffff;--lo:#b5bfd0;--tx:#323c55;--mut:#657089;--ac:#3a60d6}
         *{box-sizing:border-box}
@@ -554,7 +808,7 @@ public class Enrollmentform {
         th,td{text-align:left;padding:10px 14px;white-space:nowrap}th{color:var(--mut);font-weight:600}
         @media print{body{background:#fff}.card,.sub{box-shadow:none;border:1px solid #ccc}.actions,.hero .btn{display:none}}
         """;
- 
+
     static final String JS = """
         const form = document.querySelector('form');
         function val(n){
