@@ -74,7 +74,7 @@ public class Enrollmentform {
     static final int SCHOOL_YEAR_START = 2026;
     static final int SCHOOL_YEAR_END = SCHOOL_YEAR_START + 1;
 
-    /** Religion dropdown. Add, remove or rename items freely; "Others (type it)" is added automatically. */
+    
     static final String[] RELIGIONS = {
         "Roman Catholic", "Islam", "Iglesia ni Cristo", "Born Again Christian", "Evangelical",
         "Seventh-day Adventist", "Aglipayan", "United Church of Christ in the Philippines", "Baptist",
@@ -84,7 +84,7 @@ public class Enrollmentform {
     /** Province dropdown. Provinces you add to PLACES below are added to this list automatically. */
     static final String[] PROVINCES = {
         "Abra", "Agusan del Norte", "Agusan del Sur", "Aklan", "Albay", "Antique", "Apayao", "Aurora", "Basilan",
-        "Bataan", "Batanes", "Batangas", "Benguet", "Biliran", "Bohol", "Bukidnon", "Bulacan", "Cagayan",
+        "Bataan", "Batanes", "Batangas", "Benguet", "Biliran", "Bohol", "Bukidnon", "Bulacan", "Bocaue", "Cagayan",
         "Camarines Norte", "Camarines Sur", "Camiguin", "Capiz", "Catanduanes", "Cavite", "Cebu", "Cotabato",
         "Davao de Oro", "Davao del Norte", "Davao del Sur", "Davao Occidental", "Davao Oriental", "Dinagat Islands",
         "Eastern Samar", "Guimaras", "Ifugao", "Ilocos Norte", "Ilocos Sur", "Iloilo", "Isabela", "Kalinga",
@@ -557,12 +557,12 @@ public class Enrollmentform {
     }
 
     static String form() {
-        String[] grades = {"Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7",
+        String[] grades = {"Grade 7",
                 "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"};
         StringBuilder f = new StringBuilder();
         f.append("<header class='hero'><div class='seal' aria-hidden='true'>DepEd</div><div>")
-                .append("<h1>Basic Education Enrollment Form</h1>")
-                .append("<p class='muted'>Fill in every field that applies. Answers are saved in capital letters. Revised as of 06/01/2025.</p>")
+                .append("<h1>Enrollment Form</h1>")
+                .append("<p class='muted'>Fill in every field that applies. Answers are saved in capital letters. </p>")
                 .append("</div>{{NAV}}</header>");
         f.append("<form method='post' action='/submit'>");
 
@@ -827,7 +827,7 @@ public class Enrollmentform {
         return b.append('"').toString();
     }
 
-    /** Tiny JSON reader: objects -> Map, arrays -> List, strings, numbers (Double), booleans, null. */
+   
     static final class Json {
         final String s;
         int i;
