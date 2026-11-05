@@ -177,8 +177,8 @@ public class Enrollmentform {
 
     // ------------------------------------------------------- accounts/sessions
 
-    static String ok(String redirectTo) { return "{\"ok\":true,\"redirect\"😕"" + redirectTo + "\"}"; }
-    static String err(String msg) { return "{\"ok\":false,\"error\"😕"" + msg + "\"}"; }
+    static String ok(String redirectTo) { return "{\"ok\":true,\"redirect\":\"" + redirectTo + "\"}"; }
+    static String err(String msg) { return "{\"ok\":false,\"error\":\"" + msg + "\"}"; }
 
     static synchronized String signup(HttpExchange ex) throws IOException {
         Map<String, List<String>> in = parseForm(body(ex));
@@ -572,8 +572,8 @@ public class Enrollmentform {
         if (accessTok != null && System.currentTimeMillis() < accessExp - 60_000) return accessTok;
         try {
             long now = System.currentTimeMillis() / 1000;
-            String h = b64url("{\"alg\"😕"RS256\",\"typ\"😕"JWT\"}");
-            String c = b64url("{\"iss\":" + jq(saEmail) + ",\"scope\"😕"https://www.googleapis.com/auth/spreadsheets\",\"aud\":"
+            String h = b64url("{\"alg\":\"RS256\",\"typ\":\"JWT\"}");
+            String c = b64url("{\"iss\":" + jq(saEmail) + ",\"scope\":\"https://www.googleapis.com/auth/spreadsheets\",\"aud\":"
                     + jq(saTokenUri) + ",\"iat\":" + now + ",\"exp\":" + (now + 3600) + "}");
             Signature sg = Signature.getInstance("SHA256withRSA");
             sg.initSign(saKey);
@@ -842,4 +842,4 @@ public class Enrollmentform {
         form.addEventListener('reset', () => setTimeout(syncCert));
         syncCert();
         """;
-}
+            }
