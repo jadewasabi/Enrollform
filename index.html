@@ -4,23 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Enrollment System</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F4F1EA; --sd:#DDD9CE; --sl:#FFFFFF; --text:#2C2A29; --muted:#8A857F;
-  --navy:#1E2A38; --on-navy:#FFFFFF; --gold:#C5A880; --err:#B3402F;
+  --bg:#e6ebf3; --sd:#b9c3d6; --sl:#FFFFFF; --text:#2f3a56; --muted:#5f6b86;
+  --navy:#3a60d6; --on-navy:#FFFFFF; --gold:#3a60d6; --err:#B3402F;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#26282d; --sd:#1b1c20; --sl:#31343b; --text:#ECE8E0; --muted:#9A958D; --navy:#C5A880; --on-navy:#1E2A38; --err:#E8806E;}}
-:root[data-theme="dark"]{--bg:#26282d; --sd:#1b1c20; --sl:#31343b; --text:#ECE8E0; --muted:#9A958D; --navy:#C5A880; --on-navy:#1E2A38; --err:#E8806E;}
-,::before,*::after{margin:0;padding:0;box-sizing:border-box;user-select:none}
+  --bg:#2a2e38; --sd:#1d2028; --sl:#363b47; --text:#e6e9f2; --muted:#a3abc0; --navy:#8ea6ff; --on-navy:#1d2028; --gold:#8ea6ff; --err:#E8806E;}}
+:root[data-theme="dark"]{--bg:#2a2e38; --sd:#1d2028; --sl:#363b47; --text:#e6e9f2; --muted:#a3abc0; --navy:#8ea6ff; --on-navy:#1d2028; --gold:#8ea6ff; --err:#E8806E;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;user-select:none}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
-body{min-height:100%;height:100%;display:flex;justify-content:center;align-items:center;background:var(--bg);color:var(--text);font-family:'Montserrat',system-ui,sans-serif;overflow:hidden}
+body{min-height:100%;height:100%;display:flex;justify-content:center;align-items:center;background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;overflow:hidden}
 .fit{width:calc(880px*var(--s,1));height:calc(560px*var(--s,1))}
 .stage{width:880px;height:560px;position:relative;transform:scale(var(--s,1));transform-origin:0 0}
 /* the shape morphs: rounded card -> circle -> card */
-.shape{position:absolute;left:50%;top:50%;translate:-50% -50%;width:880px;height:560px;border-radius:14px;background:var(--bg);overflow:hidden;
+.shape{position:absolute;left:50%;top:50%;translate:-50% -50%;width:880px;height:560px;border-radius:32px;background:var(--bg);overflow:hidden;
   box-shadow:18px 18px 40px var(--sd),-18px -18px 40px var(--sl)}
 .content{position:absolute;left:50%;top:50%;width:880px;height:560px;margin:-280px 0 0 -440px}
 .layer{position:absolute;inset:0;background:var(--bg);display:flex}
@@ -31,19 +31,21 @@ body{min-height:100%;height:100%;display:flex;justify-content:center;align-items
 .wheel{position:absolute;left:50%;top:50%;width:150px;height:150px;margin:-75px 0 0 -75px;opacity:0;pointer-events:none}
 .wheel img{width:100%;height:100%;object-fit:contain;display:block}
 .wheel svg{width:100%;height:100%;fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round}
-h1{font-size:26px;font-weight:800;margin-bottom:18px}
-p.sub{font-size:11px;line-height:1.7;margin-bottom:26px;max-width:210px}
+h1{font-size:26px;font-weight:800;line-height:1.2;margin-bottom:18px}
+p.sub{font-size:12px;line-height:1.7;margin-bottom:26px;max-width:210px}
 .social{display:flex;gap:14px;margin-bottom:16px}
 .social a{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--text);
   box-shadow:4px 4px 9px var(--sd),-4px -4px 9px var(--sl);font-size:12px;font-weight:800;cursor:pointer}
 .social svg{width:13px;height:13px;fill:currentColor}
 .or{font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:14px;text-transform:uppercase}
-input{width:270px;height:38px;border:0;outline:0;border-radius:8px;background:var(--bg);padding:0 14px;margin-bottom:12px;
-  font:400 11px 'Montserrat',sans-serif;color:var(--text);box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl);user-select:text}
-input::placeholder{color:var(--muted)}
+input{width:270px;height:42px;transition:box-shadow .2s;border:0;outline:0;border-radius:18px;background:var(--bg);padding:0 18px;margin-bottom:12px;
+  font:500 12px 'Nunito',sans-serif;color:var(--text);box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl);user-select:text}
+input::placeholder{color:#8f9bb3;font-weight:400}
+input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl),0 0 0 3px color-mix(in srgb,var(--navy) 45%,transparent)}
+.btn:focus-visible,.social a:focus-visible{outline:3px solid color-mix(in srgb,var(--navy) 55%,transparent);outline-offset:3px}
 .forgot{font-size:10px;border-bottom:1px solid var(--muted);padding-bottom:2px;margin:4px 0 8px}
-.btn{height:38px;min-width:132px;padding:0 28px;border:0;border-radius:20px;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;margin-top:14px;transition:transform .2s,box-shadow .2s}
-.btn.fill{background:var(--navy);color:var(--on-navy);box-shadow:5px 5px 12px var(--sd),-4px -4px 10px var(--sl)}
+.btn{height:38px;min-width:132px;padding:0 28px;border:0;border-radius:20px;font:700 10px 'Nunito',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;margin-top:14px;transition:transform .2s,box-shadow .2s}
+.btn.fill{background:linear-gradient(145deg,color-mix(in srgb,var(--navy) 80%,#fff),var(--navy));color:var(--on-navy);box-shadow:5px 5px 12px var(--sd),-4px -4px 10px var(--sl)}
 .btn.ghost{background:var(--bg);color:var(--text);box-shadow:5px 5px 12px var(--sd),-5px -5px 12px var(--sl);margin-top:0}
 .btn.small{height:34px;min-width:120px}
 .btn:hover{transform:translateY(-1px)}
@@ -141,10 +143,10 @@ input::placeholder{color:var(--muted)}
     var c=CIRCLE+'px';
     // card -> circle (0-.28) | hold & spin as a wheel (.28-.72, content swaps at .5) | circle -> card (.72-1)
     shape.animate([
-      {width:'880px',height:'560px',borderRadius:'14px',transform:'rotate(0deg)',offset:0,easing:EASE},
+      {width:'880px',height:'560px',borderRadius:'32px',transform:'rotate(0deg)',offset:0,easing:EASE},
       {width:c,height:c,borderRadius:'50%',transform:'rotate(0deg)',offset:.28,easing:'cubic-bezier(.45,0,.55,1)'},
       {width:c,height:c,borderRadius:'50%',transform:'rotate(360deg)',offset:.72,easing:EASE},
-      {width:'880px',height:'560px',borderRadius:'14px',transform:'rotate(360deg)',offset:1}
+      {width:'880px',height:'560px',borderRadius:'32px',transform:'rotate(360deg)',offset:1}
     ],{duration:DURATION});
     content.animate([{opacity:1,offset:0},{opacity:0,offset:.12},{opacity:0,offset:.8},{opacity:1,offset:.95},{opacity:1,offset:1}],{duration:DURATION});
     wheel.animate([{opacity:0,offset:0},{opacity:0,offset:.2},{opacity:1,offset:.32},{opacity:1,offset:.68},{opacity:0,offset:.78},{opacity:0,offset:1}],{duration:DURATION});
