@@ -1,4 +1,4 @@
 FROM eclipse-temurin:21-jdk
-  WORKDIR /app
-  COPY Enrollmentform.java index.html ./
-  CMD ["java", "Enrollmentform.java"]
+WORKDIR /app
+COPY . .
+CMD ["java", "Enrollmentform.java"]
