@@ -5,7 +5,7 @@ package enrollmentform;
 
     import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
-import java.io.IOException;
+import java.io.IOException; 
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -35,8 +35,11 @@ import javax.crypto.spec.PBEKeySpec;
  *
  * Run:   java Enrollmentform.java      (keep index.html in the same folder)
  * Open:  http://localhost:8080            login / create account (index.html)
+ *        http://localhost:8080/home        homepage (admin: records + users; student: form + own submissions)
  *        http://localhost:8080/enroll      enrollment form (any signed-in user)
  *        http://localhost:8080/records     saved enrollments (ADMIN ONLY)
+ *        http://localhost:8080/users       student accounts (ADMIN ONLY)
+ *        http://localhost:8080/my          the signed-in student's own submissions
  *
  * Admin account: set ENROLL_ADMIN_EMAIL and ENROLL_ADMIN_PASSWORD before running
  * (defaults below are for testing only - change them).
@@ -195,7 +198,7 @@ public class Enrollmentform {
                 boolean admin = user != null && user[1].equals("admin");
 
                 if (path.equals("/") && get) {
-                    if (user != null) redirect(ex, admin ? "/records" : "/enroll");
+                    if (user != null) redirect(ex, "/home");
                     else if (!Files.exists(INDEX)) send(ex, 500, page("Missing file",
                             "<section class='card'><h2>index.html not found</h2><p>Put index.html in the folder you run the program from.</p></section>", ""));
                     else send(ex, 200, Files.readString(INDEX, StandardCharsets.UTF_8));
@@ -207,17 +210,31 @@ public class Enrollmentform {
                     else send(ex, 200, FORM.replace("{{NAV}}", nav(admin)));
                 } else if (path.equals("/submit") && post) {
                     if (user == null) redirect(ex, "/");
-                    else send(ex, 200, submit(ex, admin));
-                } else if (path.equals("/records")) {
+                    else send(ex, 200, submit(ex, user));
+                } else if (path.equals("/home") && get) {
+                    if (user == null) redirect(ex, "/");
+                    else send(ex, 200, home(user, admin));
+                } else if (path.equals("/my") && get) {
+                    if (user == null) redirect(ex, "/");
+                    else send(ex, 200, myPage(user));
+                } else if (path.equals("/view") && get) {
+                    if (user == null) redirect(ex, "/");
+                    else {
+                        String h = viewRecord(ex.getRequestURI().getQuery(), user, admin);
+                        if (h == null) send(ex, 404, page("Not found",
+                                "<section class='card'><h2>Submission not found</h2><div class='actions'><a class='btn primary' href='/home'>Home</a></div></section>", ""));
+                        else send(ex, 200, h);
+                    }
+                } else if (path.equals("/records") || path.equals("/users")) {
                     if (user == null) redirect(ex, "/");
                     else if (!admin) send(ex, 403, page("Admins only",
                             "<section class='card'><h2>Admins only</h2><p class='muted'>This page is only available to the administrator account.</p>"
-                                    + "<div class='actions'><a class='btn primary' href='/enroll'>Back to the form</a><a class='btn' href='/logout'>Log out</a></div></section>", ""));
-                    else send(ex, 200, records());
+                                    + "<div class='actions'><a class='btn primary' href='/home'>Home</a><a class='btn' href='/logout'>Log out</a></div></section>", ""));
+                    else send(ex, 200, path.equals("/users") ? usersPage() : records());
                 } else if (get && path.matches("/[A-Za-z0-9_-]+\\.(png|jpe?g|gif|svg|webp|ico)")) {
                     sendImage(ex, path.substring(1));
                 } else send(ex, 404, page("Not found",
-                        "<section class='card'><h2>Page not found</h2><a class='btn' href='/'>Back to the form</a></section>", ""));
+                        "<section class='card'><h2>Page not found</h2><a class='btn' href='/home'>Back to home</a></section>", ""));
             } catch (BadRequest e) {
                 send(ex, 400, page("Cannot submit",
                         "<section class='card'><h2>Cannot submit yet</h2><p>" + esc(e.getMessage())
@@ -226,7 +243,7 @@ public class Enrollmentform {
                 e.printStackTrace();
                 send(ex, 500, page("Error",
                         "<section class='card'><h2>Something went wrong</h2><p>" + esc(String.valueOf(e.getMessage()))
-                                + "</p><a class='btn' href='/'>Back to the form</a></section>", ""));
+                                + "</p><a class='btn' href='/home'>Back to home</a></section>", ""));
             }
         });
         server.start();
@@ -236,7 +253,7 @@ public class Enrollmentform {
     }
 
     static String nav(boolean admin) {
-        return "<div class='actions' style='margin:0'>" + (admin ? "<a class='btn' href='/records'>Records</a>" : "")
+        return "<div class='actions' style='margin:0'><a class='btn' href='/home'>Home</a>"
                 + "<a class='btn' href='/logout'>Log out</a></div>";
     }
 
@@ -326,7 +343,7 @@ public class Enrollmentform {
         addUser(email, Base64.getEncoder().encodeToString(salt), hash(pw, salt), name,
                 LocalDateTime.now().withNano(0).toString());
         startSession(ex, email, "user");
-        return ok("/enroll");
+        return ok("/home");
     }
 
     static String signin(HttpExchange ex) throws IOException {
@@ -336,14 +353,14 @@ public class Enrollmentform {
         if (email.equals(ADMIN_EMAIL)) {
             if (!MessageDigest.isEqual(pw.getBytes(StandardCharsets.UTF_8), ADMIN_PASSWORD.getBytes(StandardCharsets.UTF_8))) return bad;
             startSession(ex, email, "admin");
-            return ok("/records");
+            return ok("/home");
         }
         String[] u = findUser(email);
         if (u == null) return bad;
         byte[] salt = Base64.getDecoder().decode(u[1]);
         if (!MessageDigest.isEqual(hash(pw, salt).getBytes(StandardCharsets.UTF_8), u[2].getBytes(StandardCharsets.UTF_8))) return bad;
         startSession(ex, email, "user");
-        return ok("/enroll");
+        return ok("/home");
     }
 
     static String hash(String pw, byte[] salt) {
@@ -396,7 +413,9 @@ public class Enrollmentform {
     static void archiveOldCsv() throws IOException {
         if (!Files.exists(DB)) return;
         List<String> lines = Files.readAllLines(DB, StandardCharsets.UTF_8);
-        if (!lines.isEmpty() && lines.get(0).equals("timestamp," + String.join(",", KEYS))) return;
+        String full = "timestamp," + String.join(",", KEYS);
+        String legacy = full.substring(0, full.length() - ",submittedBy".length()); // files saved before accounts were recorded
+        if (!lines.isEmpty() && (lines.get(0).equals(full) || lines.get(0).equals(legacy))) return;
         Path old = DATA.resolve("enrollments-old-" + LocalDateTime.now().withNano(0).toString().replace(':', '-') + ".csv");
         Files.move(DB, old);
         System.out.println("enrollments.csv had the old layout; moved to " + old);
@@ -404,7 +423,8 @@ public class Enrollmentform {
 
     // ---------------------------------------------------------- submit/save
 
-    static String submit(HttpExchange ex, boolean admin) throws IOException {
+    static String submit(HttpExchange ex, String[] user) throws IOException {
+        boolean admin = user[1].equals("admin");
         Map<String, List<String>> in = parseForm(body(ex));
         if (!in.containsKey("certify"))
             throw new BadRequest("Please tick the certification checkbox before submitting.");
@@ -413,6 +433,7 @@ public class Enrollmentform {
             String v = String.join("; ", in.getOrDefault(k, List.of())).replaceAll("\\s+", " ").trim().toUpperCase();
             row.put(k, v);
         }
+        row.put("submittedBy", user[0]);
         row.put("syFrom", String.valueOf(SCHOOL_YEAR_START)); // cannot be changed from the browser
         row.put("syTo", String.valueOf(SCHOOL_YEAR_END));
         saveRow(row);
@@ -420,14 +441,14 @@ public class Enrollmentform {
         StringBuilder sb = new StringBuilder("<section class='card'><h2>Enrollment received</h2>")
                 .append("<p class='muted'>Print this page and hand it to the registrar or class adviser.</p><dl class='sum'>");
         for (var e : row.entrySet()) {
-            if (e.getValue().isEmpty()) continue;
+            if (e.getValue().isEmpty() || e.getKey().equals("submittedBy")) continue;
             sb.append("<dt>").append(esc(LABELS.getOrDefault(e.getKey(), e.getKey()))).append("</dt><dd>")
                     .append(esc(e.getValue())).append("</dd>");
         }
         sb.append("</dl><div class='actions'><button class='btn primary' onclick='window.print()'>Print</button>")
                 .append("<a class='btn' href='/enroll'>Enroll another learner</a>")
-                .append(admin ? "<a class='btn' href='/records'>View records</a>" : "")
-                .append("<a class='btn' href='/logout'>Log out</a></div></section>");
+                .append(admin ? "<a class='btn' href='/records'>View records</a>" : "<a class='btn' href='/my'>My submissions</a>")
+                .append("<a class='btn' href='/home'>Home</a><a class='btn' href='/logout'>Log out</a></div></section>");
         return page("Enrollment received", sb.toString(), "");
     }
 
@@ -468,42 +489,160 @@ public class Enrollmentform {
         return out;
     }
 
-    static String records() throws IOException {
-        StringBuilder sb = new StringBuilder("<section class='card'><h2>Saved enrollments</h2>");
-        List<List<String>> all = USE_SHEETS ? readTab(TAB_ENROLL + "!A:ZZ") : readCsv(DB);
-        // Saved rows are always: timestamp, then every form field in KEYS order - so read by position, not by header text.
-        String[] cols = {"timestamp", "lrn", "lastName", "firstName", "grade", "syFrom", "fatherContact", "motherContact"};
-        String[] names = {"Saved at", "LRN", "Last name", "First name", "Grade", "School year", "Father's no.", "Mother's no."};
-        List<List<String>> rows = new ArrayList<>();
-        for (int i = all.size() - 1; i >= 1; i--) {
-            boolean empty = true;
-            for (String c : all.get(i)) if (!c.isBlank()) { empty = false; break; }
-            if (!empty) rows.add(all.get(i));
+    // ------------------------------------------------------- homepages and lists
+
+    static List<List<String>> enrollRows() throws IOException {
+        return USE_SHEETS ? readTab(TAB_ENROLL + "!A:ZZ") : readCsv(DB);
+    }
+
+    static boolean blankRow(List<String> r) {
+        for (String c : r) if (!c.isBlank()) return false;
+        return true;
+    }
+
+    /** Saved rows are: timestamp, then every form field in KEYS order - read by position, not by header text. */
+    static String cell(List<String> r, String key) {
+        int k = KEYS.indexOf(key);
+        int i = key.equals("timestamp") ? 0 : k < 0 ? -1 : k + 1;
+        return i >= 0 && i < r.size() ? r.get(i) : "";
+    }
+
+    /** Student accounts as {email, name, created}. */
+    static synchronized List<String[]> userList() throws IOException {
+        List<String[]> out = new ArrayList<>();
+        for (List<String> c : USE_SHEETS ? readTab(TAB_USERS + "!A:E") : readCsv(USERS)) {
+            if (c.size() < 4 || c.get(0).equals("email")) continue;
+            out.add(new String[]{c.get(0), c.get(3), c.size() > 4 ? c.get(4) : ""});
         }
-        if (rows.isEmpty()) {
-            sb.append("<p class='muted'>Nothing saved yet. Submit the form and the learner will show up here.</p>");
+        return out;
+    }
+
+    static String userName(String email) throws IOException {
+        for (String[] u : userList()) if (u[0].equals(email)) return u[1];
+        return email;
+    }
+
+    static String tile(String href, String title, String text, String stat) {
+        return "<a class='tile' href='" + href + "'><b class='stat'>" + stat + "</b><span class='tile-t'>" + title
+                + "</span><span class='muted'>" + text + "</span></a>";
+    }
+
+    static String home(String[] user, boolean admin) throws IOException {
+        int total = 0, mine = 0;
+        List<List<String>> all = enrollRows();
+        for (int i = 1; i < all.size(); i++) {
+            if (blankRow(all.get(i))) continue;
+            total++;
+            if (cell(all.get(i), "submittedBy").equalsIgnoreCase(user[0])) mine++;
+        }
+        String who = admin ? "Administrator" : userName(user[0]);
+        StringBuilder sb = new StringBuilder("<header class='hero'><div class='seal' aria-hidden='true'>DepEd</div><div>")
+                .append("<h1>Welcome, ").append(esc(who)).append("</h1>")
+                .append("<p class='muted'>").append(admin ? "Administrator homepage. Review enrollments and student accounts."
+                        : "Student homepage. Fill in the enrollment form or look at what you submitted.")
+                .append("</p></div><div class='actions' style='margin:0'><a class='btn' href='/logout'>Log out</a></div></header>")
+                .append("<div class='tiles'>");
+        if (admin) {
+            sb.append(tile("/records", "Enrollment records", "Every learner enrolled so far, with full details.", String.valueOf(total)))
+                    .append(tile("/users", "User records", "Student accounts that have been created.", String.valueOf(userList().size())));
         } else {
-            sb.append("<div class='scroll'><table><tr>");
-            for (String n : names) sb.append("<th>").append(n).append("</th>");
-            sb.append("</tr>");
-            for (List<String> r : rows) {
-                sb.append("<tr>");
-                for (String c : cols) {
-                    int idx = c.equals("timestamp") ? 0 : KEYS.indexOf(c) + 1;
-                    sb.append("<td>").append(idx >= 1 || c.equals("timestamp") ? (idx < r.size() ? esc(r.get(idx)) : "") : "").append("</td>");
-                }
-                sb.append("</tr>");
-            }
-            sb.append("</table></div><p class='muted'>").append(rows.size())
-                    .append(USE_SHEETS ? " learner(s). Full details are in your Google Sheet." : " learner(s). Full details are in enrollments.csv.")
-                    .append("</p>");
+            sb.append(tile("/enroll", "Enrollment form", "Fill in a new Basic Education enrollment form.", "+"))
+                    .append(tile("/my", "My submissions", "The forms you submitted. Open one to view or print it.", String.valueOf(mine)));
         }
+        sb.append("</div>");
+        return page("Home", sb.toString(), "");
+    }
+
+    static String recordTable(List<List<String>> all, String onlyEmail, boolean showWho) {
+        String[] cols = {"timestamp", "lrn", "lastName", "firstName", "grade"};
+        String[] names = {"Saved at", "LRN", "Last name", "First name", "Grade"};
+        StringBuilder sb = new StringBuilder();
+        int n = 0;
+        StringBuilder rows = new StringBuilder();
+        for (int i = all.size() - 1; i >= 1; i--) {
+            List<String> r = all.get(i);
+            if (blankRow(r)) continue;
+            if (onlyEmail != null && !cell(r, "submittedBy").equalsIgnoreCase(onlyEmail)) continue;
+            n++;
+            rows.append("<tr>");
+            for (String c : cols) rows.append("<td>").append(esc(c.equals("timestamp") ? cell(r, c).replace('T', ' ') : cell(r, c))).append("</td>");
+            if (showWho) rows.append("<td>").append(esc(cell(r, "submittedBy"))).append("</td>");
+            rows.append("<td><a class='lnk' href='/view?id=").append(i).append("'>View</a></td></tr>");
+        }
+        if (n == 0) return "";
+        sb.append("<div class='scroll'><table><tr>");
+        for (String h : names) sb.append("<th>").append(h).append("</th>");
+        if (showWho) sb.append("<th>Submitted by</th>");
+        sb.append("<th></th></tr>").append(rows).append("</table></div><p class='muted'>").append(n).append(" learner(s).</p>");
+        return sb.toString();
+    }
+
+    static String records() throws IOException {
+        StringBuilder sb = new StringBuilder("<section class='card'><h2>Enrollment records</h2>");
+        String t = recordTable(enrollRows(), null, true);
+        sb.append(t.isEmpty() ? "<p class='muted'>Nothing saved yet. Submitted forms will show up here.</p>" : t);
         sb.append("<div class='actions'>");
         if (USE_SHEETS)
             sb.append("<a class='btn primary' target='_blank' rel='noopener' href='https://docs.google.com/spreadsheets/d/")
                     .append(esc(SHEET_ID)).append("/edit#gid=").append(esc(enrollGid)).append("'>Open Google Sheet</a>");
-        sb.append("<a class='btn' href='/enroll'>New enrollment</a><a class='btn' href='/logout'>Log out</a></div></section>");
-        return page("Records", sb.toString(), "");
+        sb.append("<a class='btn' href='/home'>Home</a><a class='btn' href='/logout'>Log out</a></div></section>");
+        return page("Enrollment records", sb.toString(), "");
+    }
+
+    static String usersPage() throws IOException {
+        List<List<String>> all = enrollRows();
+        Map<String, Integer> counts = new HashMap<>();
+        for (int i = 1; i < all.size(); i++) {
+            if (blankRow(all.get(i))) continue;
+            counts.merge(cell(all.get(i), "submittedBy").toLowerCase(), 1, Integer::sum);
+        }
+        List<String[]> us = userList();
+        StringBuilder sb = new StringBuilder("<section class='card'><h2>User records</h2>");
+        if (us.isEmpty()) sb.append("<p class='muted'>No student accounts yet.</p>");
+        else {
+            sb.append("<div class='scroll'><table><tr><th>Name</th><th>Email</th><th>Created</th><th>Forms submitted</th></tr>");
+            for (int i = us.size() - 1; i >= 0; i--) {
+                String[] u = us.get(i);
+                sb.append("<tr><td>").append(esc(u[1])).append("</td><td>").append(esc(u[0])).append("</td><td>")
+                        .append(esc(u[2].replace('T', ' '))).append("</td><td>")
+                        .append(counts.getOrDefault(u[0].toLowerCase(), 0)).append("</td></tr>");
+            }
+            sb.append("</table></div><p class='muted'>").append(us.size()).append(" account(s).</p>");
+        }
+        sb.append("<div class='actions'><a class='btn' href='/home'>Home</a><a class='btn' href='/logout'>Log out</a></div></section>");
+        return page("User records", sb.toString(), "");
+    }
+
+    static String myPage(String[] user) throws IOException {
+        StringBuilder sb = new StringBuilder("<section class='card'><h2>My submissions</h2>");
+        String t = recordTable(enrollRows(), user[0], false);
+        sb.append(t.isEmpty() ? "<p class='muted'>You have not submitted a form yet.</p>" : t);
+        sb.append("<div class='actions'><a class='btn primary' href='/enroll'>New enrollment</a><a class='btn' href='/home'>Home</a>"
+                + "<a class='btn' href='/logout'>Log out</a></div></section>");
+        return page("My submissions", sb.toString(), "");
+    }
+
+    /** One saved form. Students can only open their own; the admin can open any. Returns null when not found. */
+    static String viewRecord(String query, String[] user, boolean admin) throws IOException {
+        int id;
+        try { id = Integer.parseInt(first(parseForm(query == null ? "" : query), "id").trim()); }
+        catch (NumberFormatException e) { return null; }
+        List<List<String>> all = enrollRows();
+        if (id < 1 || id >= all.size() || blankRow(all.get(id))) return null;
+        List<String> r = all.get(id);
+        if (!admin && !cell(r, "submittedBy").equalsIgnoreCase(user[0])) return null;
+        StringBuilder sb = new StringBuilder("<section class='card'><h2>Submitted form</h2>")
+                .append("<p class='muted'>Saved ").append(esc(cell(r, "timestamp").replace('T', ' ')))
+                .append(admin ? " by " + esc(cell(r, "submittedBy")) : "").append("</p><dl class='sum'>");
+        for (String k : KEYS) {
+            String v = cell(r, k);
+            if (v.isEmpty() || k.equals("submittedBy")) continue;
+            sb.append("<dt>").append(esc(LABELS.getOrDefault(k, k))).append("</dt><dd>").append(esc(v)).append("</dd>");
+        }
+        sb.append("</dl><div class='actions'><button class='btn primary' onclick='window.print()'>Print</button>")
+                .append("<a class='btn' href='").append(admin ? "/records" : "/my").append("'>Back to the list</a>")
+                .append("<a class='btn' href='/home'>Home</a></div></section>");
+        return page("Submitted form", sb.toString(), "");
     }
 
     static String esc(String s) {
@@ -662,6 +801,8 @@ public class Enrollmentform {
 
         KEYS.add("certify");
         LABELS.put("certify", "Certification accepted");
+        KEYS.add("submittedBy");
+        LABELS.put("submittedBy", "Submitted by (account email)");
         f.append(sec("Certification",
                 "<p class='muted'>I hereby certify that the above information given are true and correct to the best of my knowledge and I allow the Department of Education to process the learner's personal information to create and/or update his/her learner profile in the Learner Information System. The personal information herein shall be treated as confidential in compliance with the Data Privacy Act of 2012.</p>"
                         + "<label class='o checkbox cert'><input type='checkbox' id='certify' name='certify' value='Yes' required><i></i>"
@@ -987,6 +1128,18 @@ public class Enrollmentform {
         .scroll{overflow-x:auto;border-radius:22px;padding:8px;box-shadow:var(--in)}
         table{width:100%;border-collapse:collapse;font-size:.92rem}
         th,td{text-align:left;padding:11px 14px;white-space:nowrap}th{color:var(--mut);font-weight:700}
+        .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:30px}
+        .tile{display:flex;flex-direction:column;gap:8px;padding:30px;border-radius:32px;text-decoration:none;color:var(--tx);
+          background:linear-gradient(145deg,var(--hi),var(--bg));box-shadow:16px 16px 32px var(--lo),-16px -16px 32px var(--hi);transition:box-shadow .15s,transform .15s}
+        .tile:hover{transform:translateY(-2px)}
+        .tile:active{transform:none;background:var(--bg);box-shadow:inset 8px 8px 16px var(--lo),inset -8px -8px 16px var(--hi)}
+        .tile:focus-visible,.lnk:focus-visible{outline:3px solid color-mix(in srgb,var(--ac) 55%,transparent);outline-offset:3px}
+        .tile .stat{align-self:flex-start;min-width:64px;height:64px;padding:0 16px;border-radius:20px;display:grid;place-items:center;
+          font-size:1.6rem;font-weight:800;color:var(--ac);background:var(--bg);box-shadow:var(--in);margin-bottom:10px}
+        .tile-t{font-size:1.25rem;font-weight:800}
+        .tile .muted{margin:0}
+        .lnk{color:var(--ac);font-weight:800;text-decoration:none;padding:6px 12px;border-radius:12px;box-shadow:var(--outS)}
+        .lnk:active{box-shadow:var(--in)}
         @media (prefers-reduced-motion:reduce){*{transition:none!important}}
         @media print{:root{--bg:#fff;--tx:#000;--mut:#444}body{background:#fff}.card,.sub,.seal{box-shadow:none;border:1px solid #ccc}.actions,.hero .btn{display:none}}
         """;
