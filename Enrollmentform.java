@@ -74,7 +74,7 @@ public class Enrollmentform {
     static final int SCHOOL_YEAR_START = 2026;
     static final int SCHOOL_YEAR_END = SCHOOL_YEAR_START + 1;
 
-    
+    /** Religion dropdown. Add, remove or rename items freely; "Others (type it)" is added automatically. */
     static final String[] RELIGIONS = {
         "Roman Catholic", "Islam", "Iglesia ni Cristo", "Born Again Christian", "Evangelical",
         "Seventh-day Adventist", "Aglipayan", "United Church of Christ in the Philippines", "Baptist",
@@ -84,7 +84,7 @@ public class Enrollmentform {
     /** Province dropdown. Provinces you add to PLACES below are added to this list automatically. */
     static final String[] PROVINCES = {
         "Abra", "Agusan del Norte", "Agusan del Sur", "Aklan", "Albay", "Antique", "Apayao", "Aurora", "Basilan",
-        "Bataan", "Batanes", "Batangas", "Benguet", "Biliran", "Bohol", "Bukidnon", "Bulacan", "Bocaue", "Cagayan",
+        "Bataan", "Batanes", "Batangas", "Benguet", "Biliran", "Bohol", "Bukidnon", "Bulacan", "Cagayan",
         "Camarines Norte", "Camarines Sur", "Camiguin", "Capiz", "Catanduanes", "Cavite", "Cebu", "Cotabato",
         "Davao de Oro", "Davao del Norte", "Davao del Sur", "Davao Occidental", "Davao Oriental", "Dinagat Islands",
         "Eastern Samar", "Guimaras", "Ifugao", "Ilocos Norte", "Ilocos Sur", "Iloilo", "Isabela", "Kalinga",
@@ -214,6 +214,8 @@ public class Enrollmentform {
                             "<section class='card'><h2>Admins only</h2><p class='muted'>This page is only available to the administrator account.</p>"
                                     + "<div class='actions'><a class='btn primary' href='/enroll'>Back to the form</a><a class='btn' href='/logout'>Log out</a></div></section>", ""));
                     else send(ex, 200, records());
+                } else if (get && path.matches("/[A-Za-z0-9_-]+\\.(png|jpe?g|gif|svg|webp|ico)")) {
+                    sendImage(ex, path.substring(1));
                 } else send(ex, 404, page("Not found",
                         "<section class='card'><h2>Page not found</h2><a class='btn' href='/'>Back to the form</a></section>", ""));
             } catch (BadRequest e) {
@@ -245,6 +247,25 @@ public class Enrollmentform {
         ex.getResponseHeaders().set("Content-Type", "text/html; charset=utf-8");
         ex.getResponseHeaders().set("Cache-Control", "no-store");
         ex.sendResponseHeaders(code, b.length);
+        ex.getResponseBody().write(b);
+        ex.close();
+    }
+
+    /** Serves pictures (png, jpg, gif, svg, webp, ico) that sit next to index.html, e.g. the wheel image ths.png. */
+    static void sendImage(HttpExchange ex, String name) throws IOException {
+        Path dir = INDEX.toAbsolutePath().getParent();
+        Path f = dir == null ? Paths.get(name) : dir.resolve(name);
+        if (!Files.isRegularFile(f)) {
+            send(ex, 404, page("Not found", "<section class='card'><h2>Not found</h2></section>", ""));
+            return;
+        }
+        String n = name.toLowerCase();
+        String type = n.endsWith(".png") ? "image/png" : n.endsWith(".svg") ? "image/svg+xml" : n.endsWith(".gif") ? "image/gif"
+                : n.endsWith(".webp") ? "image/webp" : n.endsWith(".ico") ? "image/x-icon" : "image/jpeg";
+        byte[] b = Files.readAllBytes(f);
+        ex.getResponseHeaders().set("Content-Type", type);
+        ex.getResponseHeaders().set("Cache-Control", "public, max-age=3600");
+        ex.sendResponseHeaders(200, b.length);
         ex.getResponseBody().write(b);
         ex.close();
     }
@@ -557,12 +578,12 @@ public class Enrollmentform {
     }
 
     static String form() {
-        String[] grades = {"Grade 7",
+        String[] grades = {"Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7",
                 "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"};
         StringBuilder f = new StringBuilder();
         f.append("<header class='hero'><div class='seal' aria-hidden='true'>DepEd</div><div>")
-                .append("<h1>Enrollment Form</h1>")
-                .append("<p class='muted'>Fill in every field that applies. Answers are saved in capital letters. </p>")
+                .append("<h1>Basic Education Enrollment Form</h1>")
+                .append("<p class='muted'>Fill in every field that applies. Answers are saved in capital letters. Revised as of 06/01/2025.</p>")
                 .append("</div>{{NAV}}</header>");
         f.append("<form method='post' action='/submit'>");
 
@@ -827,7 +848,7 @@ public class Enrollmentform {
         return b.append('"').toString();
     }
 
-   
+    /** Tiny JSON reader: objects -> Map, arrays -> List, strings, numbers (Double), booleans, null. */
     static final class Json {
         final String s;
         int i;
