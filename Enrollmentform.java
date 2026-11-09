@@ -29,28 +29,6 @@ import java.security.SecureRandom;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-/**
- * Basic Education Enrollment Form (DepEd, rev. 06/01/2025) as a Java app.
- * Pure JDK, no libraries. Requires Java 17+.
- *
- * Run:   java Enrollmentform.java      (keep index.html in the same folder)
- * Open:  http://localhost:8080            login / create account (index.html)
- *        http://localhost:8080/home        homepage (admin: records + users; student: form + own submissions)
- *        http://localhost:8080/enroll      enrollment form (any signed-in user)
- *        http://localhost:8080/records     saved enrollments (ADMIN ONLY)
- *        http://localhost:8080/users       student accounts (ADMIN ONLY)
- *        http://localhost:8080/my          the signed-in student's own submissions
- *
- * Admin account: set ENROLL_ADMIN_EMAIL and ENROLL_ADMIN_PASSWORD before running
- * (defaults below are for testing only - change them).
- * Storage (pick one):
- *   - Google Sheets (survives restarts/redeploys on any host): set GOOGLE_SHEET_ID and
- *     GOOGLE_SERVICE_ACCOUNT_JSON (the key file's contents, or that text base64-encoded)
- *     or GOOGLE_SERVICE_ACCOUNT_FILE (path to the key file). Tabs "Enrollments" and "Users"
- *     are created automatically.
- *   - CSV files (default): enrollments.csv and users.csv inside DATA_DIR (default: current folder).
- * On a host like Render, PORT is read automatically.
- */
 public class Enrollmentform {
 
     static final Path DATA = Paths.get(env("DATA_DIR", "."));
@@ -68,26 +46,23 @@ public class Enrollmentform {
     static final SecureRandom RNG = new SecureRandom();
     static class BadRequest extends RuntimeException { BadRequest(String m) { super(m); } }
     static String env(String k, String d) { String v = System.getenv(k); return v == null || v.isBlank() ? d : v; }
+    
 
-    // =====================================================================================
-    //  EDIT HERE - settings you will want to change
-    // =====================================================================================
-
-    /** School year shown (and saved) on every form. Change this number each year. */
+    //auto year to
     static final int SCHOOL_YEAR_START = 2026;
     static final int SCHOOL_YEAR_END = SCHOOL_YEAR_START + 1;
 
-    /** Religion dropdown. Add, remove or rename items freely; "Others (type it)" is added automatically. */
+   
     static final String[] RELIGIONS = {
         "Roman Catholic", "Islam", "Iglesia ni Cristo", "Born Again Christian", "Evangelical",
         "Seventh-day Adventist", "Aglipayan", "United Church of Christ in the Philippines", "Baptist",
         "Jehovah's Witnesses", "Latter-day Saints", "Buddhism", "Hinduism", "None"
     };
 
-    /** Province dropdown. Provinces you add to PLACES below are added to this list automatically. */
+   
     static final String[] PROVINCES = {
         "Abra", "Agusan del Norte", "Agusan del Sur", "Aklan", "Albay", "Antique", "Apayao", "Aurora", "Basilan",
-        "Bataan", "Batanes", "Batangas", "Benguet", "Biliran", "Bohol", "Bukidnon", "Bulacan", "Cagayan",
+        "Bataan", "Batanes", "Batangas", "Benguet", "Biliran", "Bohol", "Bukidnon", "Bulacan", "Bocaue", "Cagayan",
         "Camarines Norte", "Camarines Sur", "Camiguin", "Capiz", "Catanduanes", "Cavite", "Cebu", "Cotabato",
         "Davao de Oro", "Davao del Norte", "Davao del Sur", "Davao Occidental", "Davao Oriental", "Dinagat Islands",
         "Eastern Samar", "Guimaras", "Ifugao", "Ilocos Norte", "Ilocos Sur", "Iloilo", "Isabela", "Kalinga",
@@ -100,14 +75,7 @@ public class Enrollmentform {
         "Zambales", "Zamboanga del Norte", "Zamboanga del Sur", "Zamboanga Sibugay"
     };
 
-    /**
-     * City / municipality and barangay lists. One line per barangay:   Province | City or Municipality | Barangay
-     * - A line with only two parts (Province | City) adds the city with no barangay list (people type the barangay).
-     * - Lines starting with # are notes and are ignored. Names are shown in the order you write them.
-     * - Anything not listed here can still be typed using "Others (type it)".
-     * Example (remove the # to use):
-     * # Sample Province | Sample City | Sample Barangay
-     */
+   
     static final String PLACES = """
         Metro Manila | Caloocan
         Metro Manila | Las Pi\u00f1as
@@ -126,9 +94,28 @@ public class Enrollmentform {
         Metro Manila | San Juan
         Metro Manila | Taguig
         Metro Manila | Valenzuela
+        Bulacan | Bocaue | Taal 
+        Bulacan | Bocaue | Caingin
+        Bulacan | Bocaue | Batia 
+        Bulacan | Bocaue | Tambubong
+        Bulacan | Bocaue | Wakas
+        Bulacan | Bocaue | Bambang 
+        Bulacan | Bocaue | Binang 1st
+        Bulacan | Bocaue | Binang 2nd
+        Bulacan | Bocaue | Bagumbayan
+        Bulacan | Bocaue | Sulucan
+        Bulacan | Bocaue | Lolomboy
+        Bulacan | Bocaue | igulot
+        Bulacan | Bocaue | Duhat
+        Bulacan | Bocaue | Turo
+        Bulacan | Bocaue | Poblacion
+        Bulacan | Bocaue | Bunlo
+        Bulacan | Bocaue | Bolacan
+        Bulacan | Bocaue | Bundukan
+        Bulacan | Bocaue | Antipona 
         """;
 
-    // =====================================================================================
+  
 
     static final Map<String, Map<String, List<String>>> PLACE_MAP = parsePlaces();
     static final List<String> PROVINCE_LIST = provinceList();
@@ -183,8 +170,8 @@ public class Enrollmentform {
     static final Map<String, String> LABELS = new HashMap<>();
     static String FORM;
 
-    // ---------------------------------------------------------------- server
-
+   
+   //dito nagana render
     public static void main(String[] args) throws Exception {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : Integer.parseInt(env("PORT", "8080"));
         FORM = page("Enrollment Form", form(), "const PLACES = " + placesJson() + ";\n" + JS);
@@ -257,7 +244,7 @@ public class Enrollmentform {
                 + "<a class='btn' href='/logout'>Log out</a></div>";
     }
 
-    // ----------------------------------------------------------- http helpers
+  
 
     static void send(HttpExchange ex, int code, String html) throws IOException {
         byte[] b = html.getBytes(StandardCharsets.UTF_8);
@@ -268,7 +255,7 @@ public class Enrollmentform {
         ex.close();
     }
 
-    /** Serves pictures (png, jpg, gif, svg, webp, ico) that sit next to index.html, e.g. the wheel image ths.png. */
+    //pics dito
     static void sendImage(HttpExchange ex, String name) throws IOException {
         Path dir = INDEX.toAbsolutePath().getParent();
         Path f = dir == null ? Paths.get(name) : dir.resolve(name);
@@ -324,7 +311,7 @@ public class Enrollmentform {
         return l == null || l.isEmpty() ? "" : l.get(0);
     }
 
-    // ------------------------------------------------------- accounts/sessions
+   
 
     static String ok(String redirectTo) { return "{\"ok\":true,\"redirect\":\"" + redirectTo + "\"}"; }
     static String err(String msg) { return "{\"ok\":false,\"error\":\"" + msg + "\"}"; }
@@ -409,20 +396,20 @@ public class Enrollmentform {
         ex.getResponseHeaders().add("Set-Cookie", "sid=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
     }
 
-    /** The certification column changed, so an enrollments.csv with the old layout is set aside instead of mixed with new rows. */
+    
     static void archiveOldCsv() throws IOException {
         if (!Files.exists(DB)) return;
         List<String> lines = Files.readAllLines(DB, StandardCharsets.UTF_8);
         String full = "timestamp," + String.join(",", KEYS);
-        String legacy = full.substring(0, full.length() - ",submittedBy".length()); // files saved before accounts were recorded
+        String legacy = full.substring(0, full.length() - ",submittedBy".length()); 
         if (!lines.isEmpty() && (lines.get(0).equals(full) || lines.get(0).equals(legacy))) return;
         Path old = DATA.resolve("enrollments-old-" + LocalDateTime.now().withNano(0).toString().replace(':', '-') + ".csv");
         Files.move(DB, old);
         System.out.println("enrollments.csv had the old layout; moved to " + old);
     }
 
-    // ---------------------------------------------------------- submit/save
-
+  
+   //submit tas save
     static String submit(HttpExchange ex, String[] user) throws IOException {
         boolean admin = user[1].equals("admin");
         Map<String, List<String>> in = parseForm(body(ex));
@@ -489,8 +476,8 @@ public class Enrollmentform {
         return out;
     }
 
-    // ------------------------------------------------------- homepages and lists
-
+   
+   //hp tas lists
     static List<List<String>> enrollRows() throws IOException {
         return USE_SHEETS ? readTab(TAB_ENROLL + "!A:ZZ") : readCsv(DB);
     }
@@ -500,14 +487,14 @@ public class Enrollmentform {
         return true;
     }
 
-    /** Saved rows are: timestamp, then every form field in KEYS order - read by position, not by header text. */
+    //time 
     static String cell(List<String> r, String key) {
         int k = KEYS.indexOf(key);
         int i = key.equals("timestamp") ? 0 : k < 0 ? -1 : k + 1;
         return i >= 0 && i < r.size() ? r.get(i) : "";
     }
 
-    /** Student accounts as {email, name, created}. */
+   //stud acc
     static synchronized List<String[]> userList() throws IOException {
         List<String[]> out = new ArrayList<>();
         for (List<String> c : USE_SHEETS ? readTab(TAB_USERS + "!A:E") : readCsv(USERS)) {
@@ -622,7 +609,7 @@ public class Enrollmentform {
         return page("My submissions", sb.toString(), "");
     }
 
-    /** One saved form. Students can only open their own; the admin can open any. Returns null when not found. */
+   //mga na ssave na form ng students
     static String viewRecord(String query, String[] user, boolean admin) throws IOException {
         int id;
         try { id = Integer.parseInt(first(parseForm(query == null ? "" : query), "id").trim()); }
@@ -649,8 +636,8 @@ public class Enrollmentform {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("'", "&#39;").replace("\"", "&quot;");
     }
 
-    // ------------------------------------------------------- HTML builders
-
+  
+    //html hahahah
     static String in(String name, String label, String type, String attrs) {
         KEYS.add(name);
         LABELS.put(name, label);
@@ -665,7 +652,7 @@ public class Enrollmentform {
         return sb.append("</select></label>").toString();
     }
 
-    /** Dropdown with an "Others (type it)" choice that reveals a text box. Typed text is what gets saved. */
+   //drop down st
     static String selOther(String name, String label, String role, Collection<String> options) {
         KEYS.add(name);
         LABELS.put(name, label);
@@ -697,7 +684,7 @@ public class Enrollmentform {
     static String sub(String title, String content) { return "<div class='sub'><h3>" + title + "</h3>" + content + "</div>"; }
 
     static String addr(String p, String who) {
-        // Built in the original column order (so saved columns never move), shown in a friendlier order.
+     
         String house = in(p + "House", "House no.", "text", "");
         String street = in(p + "Street", "Sitio / Street name", "text", "");
         String brgy = selOther(p + "Barangay", "Barangay", "barangay", List.of());
@@ -717,12 +704,12 @@ public class Enrollmentform {
     }
 
     static String form() {
-        String[] grades = {"Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7",
+        String[] grades = {"Grade 7",
                 "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"};
         StringBuilder f = new StringBuilder();
         f.append("<header class='hero'><div class='seal' aria-hidden='true'>DepEd</div><div>")
-                .append("<h1>Basic Education Enrollment Form</h1>")
-                .append("<p class='muted'>Fill in every field that applies. Answers are saved in capital letters. Revised as of 06/01/2025.</p>")
+                .append("<h1>Education Enrollment Form</h1>")
+                .append("<p class='muted'>Fill in every field that applies. Answers are saved in capital letters.</p>")
                 .append("</div>{{NAV}}</header>");
         f.append("<form method='post' action='/submit'>");
 
@@ -814,9 +801,8 @@ public class Enrollmentform {
         return f.append("</form>").toString();
     }
 
-    // ------------------------------------------------------------ storage
-    // Google Sheets when GOOGLE_SHEET_ID + credentials are set, otherwise CSV files. Pure JDK, no libraries.
 
+    //google sheets
     static final String SHEET_ID = env("GOOGLE_SHEET_ID", "");
     static final String SA_JSON = env("GOOGLE_SERVICE_ACCOUNT_JSON", "");
     static final String SA_FILE = env("GOOGLE_SERVICE_ACCOUNT_FILE", "");
@@ -941,7 +927,7 @@ public class Enrollmentform {
         return out;
     }
 
-    /** Makes sure the tab exists and returns its numeric id (used for the "Open Google Sheet" link). */
+    //pag ioopen
     @SuppressWarnings("unchecked")
     static String ensureTab(String title) throws IOException {
         Map<String, Object> meta = (Map<String, Object>) sheets("GET", "?fields=sheets.properties(sheetId,title)", null);
@@ -989,7 +975,7 @@ public class Enrollmentform {
         return b.append('"').toString();
     }
 
-    /** Tiny JSON reader: objects -> Map, arrays -> List, strings, numbers (Double), booleans, null. */
+   
     static final class Json {
         final String s;
         int i;
@@ -1055,7 +1041,7 @@ public class Enrollmentform {
         }
     }
 
-    // ------------------------------------------------------------- page shell
+   
 
     static String page(String title, String body, String script) {
         return "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
