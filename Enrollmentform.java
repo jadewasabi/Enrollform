@@ -1151,8 +1151,8 @@ public class Enrollmentform {
                 + "<link rel='preconnect' href='https://fonts.googleapis.com'>"
                 + "<link href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap' rel='stylesheet'>"
                 + "<style>" + CSS + "</style></head><body>"
-                + "<div class='top'><div class='top-in'><span class='logo'>" + ic("cap") + "</span><div class='brand'><b>Department of Education</b><small>Basic Education Enrollment Portal</small></div>"
-                + "<div class='top-chips'><span class='chip amber'>" + ic("shield") + "Official LIS Integration</span><span class='chip green'><i class='dot'></i>Early Registration Open</span></div></div></div>"
+                + "<div class='top'><div class='top-in'><span class='logo'>" + ic("cap") + "</span><div class='brand'><b>Taal High School - Department of Education</b><small>Taal High School Enrollment Portal</small></div>"
+                + "<div class='top-chips'><span class='chip amber'>" + ic("shield") + "Official Enrollment Portal</span><span class='chip green'><i class='dot'></i>Registration Open</span></div></div></div>"
                 + "<main class='wrap'>" + body + "</main><script>" + script + "</script></body></html>";
     }
 
