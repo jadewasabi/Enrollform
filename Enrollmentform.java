@@ -239,9 +239,39 @@ public class Enrollmentform {
                 ? "  (default password - set ENROLL_ADMIN_PASSWORD before real use)" : ""));
     }
 
+    static final Map<String, String> ICONS = Map.ofEntries(
+        Map.entry("cap", "<path d='M22 10v6M2 10l10-5 10 5-10 5z'/><path d='M6 12v5c3 3 9 3 12 0v-5'/>"),
+        Map.entry("school", "<path d='M14 22v-4a2 2 0 1 0-4 0v4'/><path d='m18 10 3.447 1.724a1 1 0 0 1 .553.894V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7.382a1 1 0 0 1 .553-.894L6 10'/><path d='M18 5v17'/><path d='m4 6 7.106-3.553a2 2 0 0 1 1.788 0L20 6'/><path d='M6 5v17'/><circle cx='12' cy='9' r='2'/>"),
+        Map.entry("user", "<path d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/>"),
+        Map.entry("users", "<path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/>"),
+        Map.entry("house", "<path d='M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8'/><path d='M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/>"),
+        Map.entry("pulse", "<path d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/><path d='M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27'/>"),
+        Map.entry("file", "<path d='M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z'/><path d='M14 2v4a2 2 0 0 0 2 2h4'/><path d='M16 13H8'/><path d='M16 17H8'/><path d='M10 9H8'/>"),
+        Map.entry("check", "<path d='M20 6 9 17l-5-5'/>"),
+        Map.entry("left", "<path d='m12 19-7-7 7-7'/><path d='M19 12H5'/>"),
+        Map.entry("right", "<path d='M5 12h14'/><path d='m12 5 7 7-7 7'/>"),
+        Map.entry("shield", "<path d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/>"),
+        Map.entry("send", "<path d='M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z'/><path d='m21.854 2.147-10.94 10.939'/>"),
+        Map.entry("pin", "<path d='M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0'/><circle cx='12' cy='10' r='3'/>"),
+        Map.entry("out", "<path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><path d='m16 17 5-5-5-5'/><path d='M21 12H9'/>"),
+        Map.entry("list", "<rect width='8' height='4' x='8' y='2' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><path d='M12 11h4'/><path d='M12 16h4'/><path d='M8 11h.01'/><path d='M8 16h.01'/>"),
+        Map.entry("plus", "<path d='M5 12h14'/><path d='M12 5v14'/>"),
+        Map.entry("print", "<path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/><path d='M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6'/><rect x='6' y='14' width='12' height='8' rx='1'/>"));
+
+    static String ic(String n) {
+        return "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'>" + ICONS.get(n) + "</svg>";
+    }
+
+    static final String CHIPS = "<div class='chips'><span class='chip dark'>Official enrollment form</span><span class='chip gold'>Not for sale</span></div>";
+
+    static String hero(String chips, String title, String text, String actions) {
+        return "<header class='hero'><div class='hero-in'>" + chips + "<h1>" + title + "</h1><p>" + text + "</p>"
+                + (actions.isEmpty() ? "" : "<div class='hero-actions'>" + actions + "</div>")
+                + "</div><span class='hero-ic'>" + ic("school") + "</span></header>";
+    }
+
     static String nav(boolean admin) {
-        return "<div class='actions' style='margin:0'><a class='btn' href='/home'>Home</a>"
-                + "<a class='btn' href='/logout'>Log out</a></div>";
+        return "<a class='gbtn' href='/home'>" + ic("house") + "Home</a><a class='gbtn' href='/logout'>" + ic("out") + "Log out</a>";
     }
 
   
@@ -425,17 +455,23 @@ public class Enrollmentform {
         row.put("syTo", String.valueOf(SCHOOL_YEAR_END));
         saveRow(row);
 
-        StringBuilder sb = new StringBuilder("<section class='card'><h2>Enrollment received</h2>")
-                .append("<p class='muted'>Print this page and hand it to the registrar or class adviser.</p><dl class='sum'>");
+        String ref = "-";
+        try { ref = "#DEPED-" + SCHOOL_YEAR_START + "-" + String.format("%04d", enrollRows().size() - 1); } catch (Exception ignored) { }
+        StringBuilder sb = new StringBuilder("<section class='card done'><span class='okic'>" + ic("check") + "</span><h2>Enrollment Submitted!</h2>")
+                .append("<p class='muted'>The learner's information has been saved. Print this page and hand it to the registrar or class adviser.</p>")
+                .append("<div class='ref'><div><b>Reference Code:</b> <span>").append(esc(ref)).append("</span></div>")
+                .append("<div><b>Status:</b> <span>Pending Registrar Verification</span></div></div>")
+                .append("<div class='actions mid'><a class='btn primary wide' href='/enroll'>Register Another Learner</a>")
+                .append("<button class='btn' onclick='window.print()'>").append(ic("print")).append("Print</button>")
+                .append(admin ? "<a class='btn' href='/records'>View records</a>" : "<a class='btn' href='/my'>My submissions</a>")
+                .append("<a class='btn' href='/home'>Home</a></div></section>")
+                .append("<section class='card'><h2>Submitted details</h2><dl class='sum'>");
         for (var e : row.entrySet()) {
             if (e.getValue().isEmpty() || e.getKey().equals("submittedBy")) continue;
             sb.append("<dt>").append(esc(LABELS.getOrDefault(e.getKey(), e.getKey()))).append("</dt><dd>")
                     .append(esc(e.getValue())).append("</dd>");
         }
-        sb.append("</dl><div class='actions'><button class='btn primary' onclick='window.print()'>Print</button>")
-                .append("<a class='btn' href='/enroll'>Enroll another learner</a>")
-                .append(admin ? "<a class='btn' href='/records'>View records</a>" : "<a class='btn' href='/my'>My submissions</a>")
-                .append("<a class='btn' href='/home'>Home</a><a class='btn' href='/logout'>Log out</a></div></section>");
+        sb.append("</dl></section>");
         return page("Enrollment received", sb.toString(), "");
     }
 
@@ -509,32 +545,41 @@ public class Enrollmentform {
         return email;
     }
 
-    static String tile(String href, String title, String text, String stat) {
-        return "<a class='tile' href='" + href + "'><b class='stat'>" + stat + "</b><span class='tile-t'>" + title
-                + "</span><span class='muted'>" + text + "</span></a>";
+    static String tile(String href, String icon, String title, String text, String stat) {
+        return "<a class='tile' href='" + href + "'><span class='tile-ic'>" + ic(icon) + "</span><span class='tile-b'><b>" + title
+                + "</b><span>" + text + "</span></span><span class='tile-n'>" + stat + "</span></a>";
     }
 
     static String home(String[] user, boolean admin) throws IOException {
-        int total = 0, mine = 0;
+        int total = 0, mine = 0, today = 0;
+        String td = LocalDate.now().toString();
         List<List<String>> all = enrollRows();
         for (int i = 1; i < all.size(); i++) {
             if (blankRow(all.get(i))) continue;
             total++;
             if (cell(all.get(i), "submittedBy").equalsIgnoreCase(user[0])) mine++;
+            if (cell(all.get(i), "timestamp").startsWith(td)) today++;
         }
         String who = admin ? "Administrator" : userName(user[0]);
-        StringBuilder sb = new StringBuilder("<header class='hero'><div class='seal' aria-hidden='true'>DepEd</div><div>")
-                .append("<h1>Welcome, ").append(esc(who)).append("</h1>")
-                .append("<p class='muted'>").append(admin ? "Administrator homepage. Review enrollments and student accounts."
-                        : "Student homepage. Fill in the enrollment form or look at what you submitted.")
-                .append("</p></div><div class='actions' style='margin:0'><a class='btn' href='/logout'>Log out</a></div></header>")
-                .append("<div class='tiles'>");
+        String chips = "<div class='chips'><span class='chip dark'>" + (admin ? "Administrator account" : "Student account")
+                + "</span><span class='chip gold'>SY " + SCHOOL_YEAR_START + " - " + SCHOOL_YEAR_END + "</span></div>";
+        String text = admin ? "Review submitted enrollments and manage student accounts."
+                : "Fill in the enrollment form or look at the forms you already submitted.";
+        StringBuilder sb = new StringBuilder(hero(chips, "Welcome, " + esc(who), text,
+                admin ? "<a class='gbtn' href='/logout'>" + ic("out") + "Log out</a>"
+                        : "<a class='gbtn solid' href='/enroll'>" + ic("plus") + "Start enrollment</a><a class='gbtn' href='/logout'>" + ic("out") + "Log out</a>"));
+        sb.append("<div class='tiles'>");
         if (admin) {
-            sb.append(tile("/records", "Enrollment records", "Every learner enrolled so far, with full details.", String.valueOf(total)))
-                    .append(tile("/users", "User records", "Student accounts that have been created.", String.valueOf(userList().size())));
+            sb.append(tile("/records", "list", "Enrollment records", "Every learner enrolled so far, with full details. " + today + " submitted today.", String.valueOf(total)))
+                    .append(tile("/users", "users", "User records", "Student accounts that have been created.", String.valueOf(userList().size())));
         } else {
-            sb.append(tile("/enroll", "Enrollment form", "Fill in a new Basic Education enrollment form.", "+"))
-                    .append(tile("/my", "My submissions", "The forms you submitted. Open one to view or print it.", String.valueOf(mine)));
+            sb.append(tile("/enroll", "file", "Enrollment form", "Fill in a new Basic Education enrollment form.", "+"))
+                    .append(tile("/my", "list", "My submissions", "The forms you submitted. Open one to view or print it.", String.valueOf(mine)));
+            sb.append("<section class='card need'><h2>Before you start</h2><ul>"
+                    + "<li>The learner's birth certificate, so names and birthdate match.</li>"
+                    + "<li>The 12-digit LRN, if the learner already has one.</li>"
+                    + "<li>Mother's maiden name and a parent or guardian contact number.</li>"
+                    + "<li>Previous school details for returning learners and transferees.</li></ul></section>");
         }
         sb.append("</div>");
         return page("Home", sb.toString(), "");
@@ -638,25 +683,49 @@ public class Enrollmentform {
 
   
     //html hahahah
+    static final Set<String> DEFAULT_NO = Set.of("ip", "fourPs", "sned", "pwdId");
+
+    static String req(String attrs) { return attrs.contains("required") ? " <i class='req'>*</i>" : ""; }
+
     static String in(String name, String label, String type, String attrs) {
         KEYS.add(name);
         LABELS.put(name, label);
-        return "<label class='f'><span>" + label + "</span><input name='" + name + "' type='" + type + "' " + attrs + "></label>";
+        return "<label class='f'><span>" + label + req(attrs) + "</span><input name='" + name + "' type='" + type + "' " + attrs + "></label>";
     }
 
-    static String sel(String name, String label, String... options) {
+    // input without a visible label (placeholder only), used for the parent / guardian rows
+    static String pin(String name, String label, String ph, String type, String attrs) {
         KEYS.add(name);
         LABELS.put(name, label);
-        StringBuilder sb = new StringBuilder("<label class='f'><span>" + label + "</span><select name='" + name + "'><option value=''>Select</option>");
+        return "<input class='pin' name='" + name + "' type='" + type + "' placeholder='" + ph + (attrs.contains("required") ? " *" : "")
+                + "' aria-label='" + esc(label) + "' " + attrs + ">";
+    }
+
+    static String hid(String name, String label, String value) {
+        KEYS.add(name);
+        LABELS.put(name, label);
+        return "<input type='hidden' name='" + name + "' value='" + value + "'>";
+    }
+
+    static String sel(String name, String label, String... options) { return selA(name, label, "", options); }
+
+    static String selA(String name, String label, String attrs, String... options) {
+        KEYS.add(name);
+        LABELS.put(name, label);
+        StringBuilder sb = new StringBuilder("<label class='f'><span>" + label + req(attrs) + "</span><select name='" + name + "' " + attrs + "><option value=''>Select " + label + "</option>");
         for (String o : options) sb.append("<option>").append(o).append("</option>");
         return sb.append("</select></label>").toString();
     }
 
-   //drop down st
     static String selOther(String name, String label, String role, Collection<String> options) {
+        return selOther(name, label, role, options, "");
+    }
+
+    //drop down st
+    static String selOther(String name, String label, String role, Collection<String> options, String attrs) {
         KEYS.add(name);
         LABELS.put(name, label);
-        StringBuilder sb = new StringBuilder("<label class='f'><span>" + esc(label) + "</span><select name='" + name + "' data-other"
+        StringBuilder sb = new StringBuilder("<label class='f'><span>" + esc(label) + req(attrs) + "</span><select name='" + name + "' data-other " + attrs
                 + (role == null ? "" : " data-place='" + role + "'") + "><option value=''>Select</option>");
         for (String o : options) sb.append("<option value='").append(esc(o)).append("'>").append(esc(o)).append("</option>");
         return sb.append("<option value='__other__'>Others (type it)</option></select>")
@@ -664,13 +733,19 @@ public class Enrollmentform {
     }
 
     static String opts(String name, String legend, String type, String... labels) {
+        return optsX(name, legend, type, type.equals("checkbox"), labels);
+    }
+
+    static String optsX(String name, String legend, String type, boolean stack, String... labels) {
         if (!KEYS.contains(name)) KEYS.add(name);
         LABELS.put(name, legend);
-        StringBuilder sb = new StringBuilder("<fieldset class='fs'><legend>" + legend + "</legend><div class='opts'>");
+        StringBuilder sb = new StringBuilder("<div class='q" + (stack ? " stack" : "") + "' role='group' aria-label='" + esc(legend) + "'><span class='ql'>" + esc(legend)
+                + "</span><div class='opts " + type + "s'>");
         for (String l : labels)
-            sb.append("<label class='o ").append(type).append("'><input type='").append(type).append("' name='").append(name)
-                    .append("' value='").append(l).append("'><i></i><b>").append(l).append("</b></label>");
-        return sb.append("</div></fieldset>").toString();
+            sb.append("<label class='o ").append(type).append(type.equals("checkbox") ? " box" : "").append("'><input type='").append(type).append("' name='").append(name)
+                    .append("' value='").append(esc(l)).append("'").append(l.equals("No") && DEFAULT_NO.contains(name) ? " checked" : "")
+                    .append("><span>").append(esc(l)).append("</span></label>");
+        return sb.append("</div></div>").toString();
     }
 
     static String grid(int cols, String... items) {
@@ -679,81 +754,104 @@ public class Enrollmentform {
 
     static String cond(String rule, String content) { return "<div class='cond' data-if='" + rule + "'>" + content + "</div>"; }
 
-    static String sec(String title, String content) { return "<section class='card'><h2>" + title + "</h2>" + content + "</section>"; }
+    static String sub(String title, String content) { return "<div class='group'>" + (title.isEmpty() ? "" : "<h3>" + title + "</h3>") + content + "</div>"; }
 
-    static String sub(String title, String content) { return "<div class='sub'><h3>" + title + "</h3>" + content + "</div>"; }
+    static String step(int i, String icon, String title, String text, String content) {
+        return "<section class='panel' data-step='" + i + "'" + (i > 0 ? " hidden" : "") + "><div class='ph'><span class='pic'>" + ic(icon)
+                + "</span><div><h2>" + title + "</h2><p class='muted'>" + text + "</p></div></div><div class='pbody'>" + content + "</div></section>";
+    }
+
+    static String stepper() {
+        String[][] s = {{"school", "Grade & LRN"}, {"user", "Learner Info"}, {"house", "Address & Parents"}, {"pulse", "SNED & Modalities"}, {"file", "Review & Submit"}};
+        StringBuilder sb = new StringBuilder("<nav class='stepper' aria-label='Enrollment steps'><ol>");
+        for (int i = 0; i < s.length; i++)
+            sb.append("<li class='st").append(i == 0 ? " active" : "").append("'><button type='button' class='dot' data-go='").append(i)
+                    .append("' aria-label='").append(esc(s[i][1])).append("'><span class='mi'>").append(ic(s[i][0])).append("</span><span class='ck'>")
+                    .append(ic("check")).append("</span></button><span class='lbl'>").append(esc(s[i][1])).append("</span></li>");
+        return sb.append("</ol></nav>").toString();
+    }
 
     static String addr(String p, String who) {
-     
-        String house = in(p + "House", "House no.", "text", "");
-        String street = in(p + "Street", "Sitio / Street name", "text", "");
-        String brgy = selOther(p + "Barangay", "Barangay", "barangay", List.of());
-        String city = selOther(p + "City", "Municipality / City", "city", List.of());
-        String prov = selOther(p + "Province", "Province", "province", PROVINCE_LIST);
+        String r = p.equals("cur") ? "required" : "";
+        String house = in(p + "House", "House No.", "text", "placeholder='e.g. Block 5 Lot 2'");
+        String street = in(p + "Street", "Sitio / Street", "text", "placeholder='e.g. Sitio Maligaya'");
+        String brgy = selOther(p + "Barangay", "Barangay", "barangay", List.of(), r);
+        String city = selOther(p + "City", "Municipality / City", "city", List.of(), r);
+        String prov = selOther(p + "Province", "Province", "province", PROVINCE_LIST, r);
         String country = in(p + "Country", "Country", "text", "value='Philippines'");
-        String zip = in(p + "Zip", "Zip code", "text", "inputmode='numeric' maxlength='4'");
+        String zip = in(p + "Zip", "Zip Code", "text", "inputmode='numeric' maxlength='4' placeholder='e.g. 2009'");
         return grid(3, prov, city, brgy, house, street, zip, country);
     }
 
-    static String person(String p, String title) {
-        return sub(title, grid(4,
-                in(p + "Last", "Last name", "text", ""),
-                in(p + "First", "First name", "text", ""),
-                in(p + "Middle", "Middle name", "text", ""),
-                in(p + "Contact", "Contact number", "tel", "inputmode='tel'")));
+    static String person(String p, String title, String heading, boolean nameReq, boolean contactReq) {
+        String n = nameReq ? "required" : "";
+        return "<div class='group'><h4 class='gt'>" + heading + "</h4>" + grid(4,
+                pin(p + "Last", title + ": last name", "Last Name", "text", n),
+                pin(p + "First", title + ": first name", "First Name", "text", n),
+                pin(p + "Middle", title + ": middle name", "Middle Name", "text", ""),
+                pin(p + "Contact", title + ": contact number", "Contact Number", "tel", "inputmode='tel' " + (contactReq ? "data-guardian" : ""))) + "</div>";
     }
 
     static String form() {
-        String[] grades = {"Grade 7",
-                "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"};
+        String[] grades = {"Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"};
         StringBuilder f = new StringBuilder();
-        f.append("<header class='hero'><div class='seal' aria-hidden='true'>DepEd</div><div>")
-                .append("<h1>Education Enrollment Form</h1>")
-                .append("<p class='muted'>Fill in every field that applies. Answers are saved in capital letters.</p>")
-                .append("</div>{{NAV}}</header>");
-        f.append("<form method='post' action='/submit'>");
+        f.append(hero(CHIPS, "Basic Education Enrollment Form",
+                "Please provide accurate information. Required fields are marked with an asterisk (*). Answers are saved in capital letters.", "{{NAV}}"));
+        f.append("<form method='post' action='/submit' id='enrollForm' autocomplete='off'>").append(stepper()).append("<div class='card wiz'>");
 
-        f.append(sec("1. School year and LRN", grid(3,
-                in("syFrom", "School year starts", "number", "required readonly value='" + SCHOOL_YEAR_START + "'"),
-                in("syTo", "School year ends", "number", "required readonly value='" + SCHOOL_YEAR_END + "'"),
-                in("lrn", "Learner Reference No. (LRN), if applicable", "text",
-                        "inputmode='numeric' maxlength='12' pattern='\\d{12}' title='12 digits' placeholder='12 digits'"))));
+        // ---- step 1: school year, LRN, grade
+        String sy = "<label class='f'><span>School Year <i class='req'>*</i></span><input type='text' value='" + SCHOOL_YEAR_START + " - " + SCHOOL_YEAR_END + "' readonly></label>";
+        String syHid = hid("syFrom", "School year starts", "" + SCHOOL_YEAR_START) + hid("syTo", "School year ends", "" + SCHOOL_YEAR_END);
+        String lrn = in("lrn", "Learner Reference No. (LRN)", "text", "inputmode='numeric' maxlength='12' pattern='\\d{12}' title='12 digits' placeholder='12-digit LRN (if applicable)'")
+                .replace("</label>", "<small class='hint'>Leave blank if no LRN yet (e.g., Kindergarten or First Time Enrollee)</small></label>");
+        String gt = hid("gradeType", "Type of enrollment", "Graded");
+        KEYS.add("grade");
+        LABELS.put("grade", "Grade level");
+        StringBuilder gs = new StringBuilder("<select name='grade' id='grade' required><option value=''>Select Grade Level</option>");
+        for (String g : grades) gs.append("<option>").append(g).append("</option>");
+        gs.append("</select>");
+        String gradeBox = "<div class='group'><label class='lab' for='grade'>Grade Level to Enroll <i class='req'>*</i></label><div class='row2'>" + gs
+                + "<label class='o checkbox box'><input type='checkbox' id='nonGraded'><span>Non-Graded (For Special Needs Education / SNED Only)</span></label></div>" + gt + "</div>";
+        String kinder = cond("grade:Kindergarten", sub("For kindergarten enrollees",
+                opts("earlyProgram", "Has the learner attended any early learning program?", "radio", "Yes", "No")
+                        + cond("earlyProgram:Yes", in("earlyProgramSpec", "Please specify", "text", ""))));
+        f.append(step(0, "school", "1. School Year &amp; Grade Level Information", "Specify target academic year, grade level, and Learner Reference Number (LRN).",
+                "<div class='grid g2'>" + sy + lrn + "</div>" + syHid + gradeBox + kinder));
 
-        f.append(sec("2. Grade level to enroll",
-                opts("gradeType", "Type of enrollment", "radio", "Graded", "Non-graded (SNEd only)")
-                        + cond("gradeType:Graded", sel("grade", "Grade level", grades))
-                        + cond("grade:Kindergarten",
-                        sub("For kindergarten enrollees",
-                                opts("earlyProgram", "Has the learner attended any early learning program?", "radio", "Yes", "No")
-                                        + cond("earlyProgram:Yes", in("earlyProgramSpec", "Please specify", "text", ""))))));
+        // ---- step 2: learner's personal information
+        String psa = in("psa", "PSA Birth Certificate No. (If available upon registration)", "text", "placeholder='Enter PSA Birth Certificate Number'");
+        String last = in("lastName", "Last Name", "text", "required placeholder='Dela Cruz'");
+        String first = in("firstName", "First Name", "text", "required placeholder='Juan'");
+        String mid = in("middleName", "Middle Name", "text", "placeholder='Santos'");
+        String ext = in("extName", "Ext. Name (e.g. Jr., III)", "text", "placeholder='Jr. / III'");
+        String dob = in("birthdate", "Date of Birth", "date", "required max='" + LocalDate.now() + "'");
+        String age = in("age", "Age", "text", "readonly placeholder='Auto-calculated'");
+        String sex = selA("sex", "Sex", "required", "Male", "Female");
+        String bp = CITY_LIST.isEmpty() ? in("birthPlace", "Place of Birth (Municipality/City)", "text", "placeholder='e.g. Baybay City'")
+                : selOther("birthPlace", "Place of Birth (Municipality/City)", null, CITY_LIST);
+        String rel = selOther("religion", "Religion", null, Arrays.asList(RELIGIONS));
+        String tongue = in("motherTongue", "Mother Tongue", "text", "placeholder='e.g. Tagalog, Cebuano, Waray'");
+        String ip = sub("", optsX("ip", "Belonging to Indigenous Peoples (IP) Community?", "radio", true, "Yes", "No")
+                + cond("ip:Yes", in("ipSpec", "Specify IP Community", "text", "placeholder='Specify IP Community'")));
+        String fp = sub("", optsX("fourPs", "Is your family a beneficiary of 4Ps?", "radio", true, "Yes", "No")
+                + cond("fourPs:Yes", in("fourPsId", "4Ps Household ID Number", "text", "inputmode='numeric' placeholder='Write 4Ps Household ID Number'")));
+        f.append(step(1, "user", "2. Learner's Personal Information", "Ensure details match the learner's Birth Certificate.",
+                psa + grid(4, last, first, mid, ext) + grid(3, dob, age, sex) + grid(3, bp, tongue, rel) + "<div class='grid g2 top'>" + ip + fp + "</div>"));
 
-        f.append(sec("3. Learner's personal information",
-                in("psa", "PSA Birth Certificate No. (if available upon registration)", "text", "")
-                        + grid(4,
-                        in("lastName", "Last name", "text", "required"),
-                        in("firstName", "First name", "text", "required"),
-                        in("middleName", "Middle name", "text", ""),
-                        in("extName", "Extension name (Jr., III)", "text", ""))
-                        + grid(4,
-                        in("birthdate", "Birthdate", "date", "required"),
-                        in("age", "Age", "text", "readonly placeholder='auto'"),
-                        sel("sex", "Sex", "Male", "Female"),
-                        CITY_LIST.isEmpty() ? in("birthPlace", "Place of birth (Municipality / City)", "text", "")
-                                : selOther("birthPlace", "Place of birth (Municipality / City)", null, CITY_LIST))
-                        + grid(2,
-                        selOther("religion", "Religion", null, Arrays.asList(RELIGIONS)),
-                        in("motherTongue", "Mother tongue", "text", ""))
-                        + opts("ip", "Belonging to any Indigenous Peoples (IP) community / Indigenous Cultural Community?", "radio", "Yes", "No")
-                        + cond("ip:Yes", in("ipSpec", "Please specify", "text", ""))
-                        + opts("fourPs", "Is your family a beneficiary of 4Ps?", "radio", "Yes", "No")
-                        + cond("fourPs:Yes", in("fourPsId", "4Ps Household ID number", "text", "inputmode='numeric'"))
-                        + sub("Current address", addr("cur", "current"))
-                        + opts("permSame", "Is your permanent address the same as your current address?", "radio", "Yes", "No")
-                        + cond("permSame:No", sub("Permanent address", addr("perm", "permanent")))));
+        // ---- step 3: addresses and parents
+        String cur = addr("cur", "current");
+        String permSame = hid("permSame", "Is your permanent address the same as your current address?", "No");
+        String perm = addr("perm", "permanent");
+        String parents = person("father", "Father", "Father's Name", false, false)
+                + person("mother", "Mother", "Mother's Maiden Name (Required)", true, false)
+                + person("guardian", "Legal guardian", "Legal Guardian's Name (If learner is not living with parents)", false, true);
+        f.append(step(2, "house", "3. Addresses &amp; Parent / Guardian Details", "Provide current residence and legal parent/guardian information.",
+                "<h3 class='sh'>" + ic("pin") + "Current Address</h3>" + cur
+                        + "<div class='sh-row'><h3 class='sh'>" + ic("pin") + "Permanent Address</h3><label class='o checkbox pill'><input type='checkbox' id='permChk'><span>Same as Current Address</span></label></div>"
+                        + permSame + "<div id='permBox'>" + perm + "</div><p class='muted' id='permNote' hidden>The permanent address will be saved as the same as the current address.</p>"
+                        + "<h3 class='sh top'>" + ic("users") + "4. Parent's / Guardian's Information</h3>" + parents));
 
-        f.append(sec("4. Parent's / Guardian's information",
-                person("father", "Father's name") + person("mother", "Mother's maiden name") + person("guardian", "Legal guardian's name")));
-
+        // ---- step 4: SNED, transfer, SHS, modality
         String[] a1 = {"Attention Deficit Hyperactivity Disorder", "Autism Spectrum Disorder", "Cerebral Palsy",
                 "Emotional-Behavior Disorder", "Hearing Impairment", "Intellectual Disability", "Learning Disability",
                 "Multiple Disabilities", "Orthopedic/Physical Handicap", "Speech/Language Disorder",
@@ -763,42 +861,46 @@ public class Enrollmentform {
                 "Difficulty in Displaying Interpersonal Behavior (Emotional and Behavioral)", "Difficulty in Hearing",
                 "Difficulty in Mobility (Walking, Climbing and Grasping)", "Difficulty in Performing Adaptive Skills (Self-Care)",
                 "Difficulty in Remembering, Concentrating, Paying Attention and Understanding", "Difficulty in Seeing"};
-        f.append(sec("5. Special Needs Education Program",
-                opts("sned", "Is the learner under the Special Needs Education Program?", "radio", "Yes", "No")
-                        + cond("sned:Yes",
-                        "<p class='muted'>If yes, check only one: either from a1 or a2.</p>"
-                                + opts("diagnosis", "a1. With diagnosis from a licensed medical specialist", "checkbox", a1)
-                                + opts("manifest", "a2. With manifestations", "checkbox", a2)
-                                + opts("pwdId", "b. Does the learner have a PWD ID?", "radio", "Yes", "No"))));
-
-        f.append(sec("6. Returning learner (Balik-Aral) or transferring / moving in", grid(2,
-                in("lastGrade", "Last grade level completed", "text", ""),
-                in("lastSY", "Last school year completed", "text", "placeholder='2025-2026'"),
-                in("lastSchool", "Last school attended", "text", ""),
-                in("lastSchoolId", "School ID", "text", "inputmode='numeric' maxlength='6'"))));
-
-        f.append(cond("grade:Grade 11|Grade 12", sec("7. Senior High School",
+        String sned = sub("5. Special Needs Education Program",
+                optsX("sned", "Is the Learner under the Special Needs Education Program?", "radio", false, "Yes", "No")
+                        + cond("sned:Yes", "<p class='muted'>If yes, check only one: either from a1 or a2.</p>"
+                        + opts("diagnosis", "a1. With diagnosis from a licensed medical specialist", "checkbox", a1)
+                        + opts("manifest", "a2. With manifestations", "checkbox", a2)
+                        + optsX("pwdId", "b. Does the Learner have a PWD ID?", "radio", false, "Yes", "No")));
+        String ret = sub("6. For Returning Learner (Balik-Aral) &amp; Transferees", grid(2,
+                in("lastGrade", "Last Grade Level Completed", "text", "placeholder='e.g. Grade 6'"),
+                in("lastSY", "Last School Year Completed", "text", "placeholder='e.g. 2025-2026'"),
+                in("lastSchool", "Last School Attended", "text", "placeholder='Name of previous school'"),
+                in("lastSchoolId", "School ID (6 digits)", "text", "inputmode='numeric' maxlength='6' placeholder='e.g. 104829'")));
+        String shs = cond("grade:Grade 11|Grade 12", sub("7. Senior High School",
                 opts("semester", "Semester", "radio", "1st", "2nd")
-                        + grid(2, in("track", "Track", "text", ""), in("strand", "Strand", "text", "")))));
+                        + grid(2, in("track", "Track", "text", ""), in("strand", "Strand", "text", ""))));
+        String mod = sub("8. Preferred Distance Learning Modality (Check all that apply)",
+                opts("modality", "Preferred distance learning modality", "checkbox", "Blended (Combination)", "Modular (Print)", "Modular (Digital)",
+                        "Online", "Educational Television", "Radio-Based Instruction", "Homeschooling"));
+        f.append(step(3, "pulse", "4. Special Needs, Transfer &amp; Learning Preferences", "Specify special education, transfer history, SHS strands, and distance learning options.",
+                sned + ret + shs + mod));
 
-        f.append(sec("8. Distance learning preference",
-                opts("modality", "If the school will use other distance learning modalities aside from face-to-face instruction, what would you prefer for your child? Check all that apply.",
-                        "checkbox", "Blended (Combination)", "Homeschooling", "Modular (Print)", "Radio-Based Television",
-                        "Educational Television", "Modular (Digital)", "Online")));
-
+        // ---- step 5: review and certify
         KEYS.add("certify");
         LABELS.put("certify", "Certification accepted");
         KEYS.add("submittedBy");
         LABELS.put("submittedBy", "Submitted by (account email)");
-        f.append(sec("Certification",
-                "<p class='muted'>I hereby certify that the above information given are true and correct to the best of my knowledge and I allow the Department of Education to process the learner's personal information to create and/or update his/her learner profile in the Learner Information System. The personal information herein shall be treated as confidential in compliance with the Data Privacy Act of 2012.</p>"
-                        + "<label class='o checkbox cert'><input type='checkbox' id='certify' name='certify' value='Yes' required><i></i>"
-                        + "<b>I certify that the information above is true and correct, and I agree to the processing of the learner's personal information as stated.</b></label>"
-                        + grid(3, in("signDate", "Date", "date", "required value='" + LocalDate.now() + "'"))
-                        + "<div class='actions'><button class='btn primary' id='submitBtn' type='submit' disabled>Submit enrollment</button>"
-                        + "<button class='btn' type='reset'>Clear form</button></div>"));
+        String review = "<dl class='review'>"
+                + "<div><dt>Learner full name</dt><dd id='rvName'></dd></div><div><dt>School year &amp; grade</dt><dd id='rvGrade' class='hl'></dd></div>"
+                + "<div><dt>LRN &amp; PSA cert no.</dt><dd id='rvIds'></dd></div><div><dt>DOB &amp; sex</dt><dd id='rvDob'></dd></div>"
+                + "<div><dt>Current address</dt><dd id='rvAddr'></dd></div><div><dt>Mother / guardian contact</dt><dd id='rvContact'></dd></div></dl>";
+        String certBox = "<div class='cert'><p><em>\"I hereby certify that the above information given are true and correct to the best of my knowledge and I allow the Department of Education to process the learner's personal information to create and/or update his/her learner profile in the Learner Information System.\"</em></p>"
+                + "<p><b>The personal information herein shall be treated as confidential in compliance with the Data Privacy Act of 2012.</b></p></div>"
+                + "<label class='o checkbox certrow'><input type='checkbox' id='certify' name='certify' value='Yes'><span>I agree to the legal certification statement above and confirm the accuracy of all submitted details. <i class='req'>*</i></span></label>"
+                + "<p class='err' id='certErr' hidden>You must certify accuracy before submitting.</p>"
+                + "<div class='grid g3'>" + in("signDate", "Date Signed", "date", "readonly value='" + LocalDate.now() + "'") + "</div>";
+        f.append(step(4, "file", "5. Review &amp; Legal Certification", "Confirm details and sign the compliance certification.", review + certBox));
 
-        return f.append("</form>").toString();
+        f.append("<div class='foot'><button type='button' class='btn' id='prev' disabled>" + ic("left") + "Previous</button>"
+                + "<button type='button' class='btn primary' id='next'>Next Step" + ic("right") + "</button>"
+                + "<button type='submit' class='btn ok' id='submitBtn' hidden>Submit Registration" + ic("send") + "</button></div>");
+        return f.append("</div></form>").toString();
     }
 
 
@@ -1045,99 +1147,140 @@ public class Enrollmentform {
 
     static String page(String title, String body, String script) {
         return "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
-                + "<meta name='viewport' content='width=device-width,initial-scale=1'><title>" + esc(title) + "</title>"
+                + "<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'><title>" + esc(title) + "</title>"
                 + "<link rel='preconnect' href='https://fonts.googleapis.com'>"
-                + "<link href='https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap' rel='stylesheet'>"
-                + "<style>" + CSS + "</style></head><body><main class='wrap'>" + body + "</main><script>" + script + "</script></body></html>";
+                + "<link href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap' rel='stylesheet'>"
+                + "<style>" + CSS + "</style></head><body>"
+                + "<div class='top'><div class='top-in'><span class='logo'>" + ic("cap") + "</span><div class='brand'><b>Department of Education</b><small>Basic Education Enrollment Portal</small></div>"
+                + "<div class='top-chips'><span class='chip amber'>" + ic("shield") + "Official LIS Integration</span><span class='chip green'><i class='dot'></i>Early Registration Open</span></div></div></div>"
+                + "<main class='wrap'>" + body + "</main><script>" + script + "</script></body></html>";
     }
 
     static final String CSS = """
-        :root{--bg:#e6ebf3;--hi:#ffffff;--lo:#b9c3d6;--tx:#2f3a56;--mut:#5f6b86;--ac:#3a60d6;--ac2:#6f8df0;--ph:#8f9bb3;
-          --out:9px 9px 18px var(--lo),-9px -9px 18px var(--hi);--outS:5px 5px 11px var(--lo),-5px -5px 11px var(--hi);
-          --in:inset 5px 5px 10px var(--lo),inset -5px -5px 10px var(--hi)}
-        @media (prefers-color-scheme:dark){:root{--bg:#2a2e38;--hi:#363b47;--lo:#1d2028;--tx:#e6e9f2;--mut:#a3abc0;--ac:#8ea6ff;--ac2:#b5c3ff;--ph:#7d869c}}
+        :root{--bg:#f8fafc;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--brand:#0a5c8f;--navy:#0b2447;--ok:#10b981;--okd:#067a52;--err:#e11d48;--soft:#f1f5f9;color-scheme:light}
         *{box-sizing:border-box}
-        body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 "Nunito","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+        body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Plus Jakarta Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
         [hidden]{display:none!important}
-        .wrap{max-width:980px;margin:0 auto;padding:32px 16px 90px}
-        .hero{display:flex;align-items:center;gap:24px;margin-bottom:36px;flex-wrap:wrap}
-        .hero>div:nth-child(2){flex:1;min-width:240px}
-        .seal{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:var(--ac);letter-spacing:.5px;
-          background:linear-gradient(145deg,var(--hi),var(--bg));box-shadow:var(--out),inset 2px 2px 4px var(--hi),inset -2px -2px 4px var(--lo)}
-        h1{margin:0 0 4px;font-size:clamp(1.6rem,4vw,2.3rem);font-weight:800;line-height:1.15}
-        h2{margin:0 0 22px;font-size:1.2rem;font-weight:800;display:flex;align-items:center;gap:10px}
-        h2::before{content:"";flex:none;width:10px;height:26px;border-radius:6px;background:linear-gradient(180deg,var(--ac2),var(--ac));box-shadow:2px 2px 5px var(--lo),-2px -2px 5px var(--hi)}
-        h3{margin:0 0 12px;font-size:1rem;font-weight:600;color:var(--mut)}
-        .muted{color:var(--mut);font-size:.92rem;margin:0 0 14px}
-        .card{background:var(--bg);border-radius:32px;padding:30px;margin:0 0 34px;box-shadow:16px 16px 32px var(--lo),-16px -16px 32px var(--hi)}
-        .sub{border-radius:24px;padding:22px;margin:20px 0;box-shadow:var(--in)}
-        .grid{display:grid;gap:20px;margin-bottom:18px;align-items:end}
+        .ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .top{background:#fff;border-bottom:1px solid var(--line)}
+        .top-in{max-width:1040px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+        .logo{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#1c86c7,#0a5c8f);box-shadow:0 6px 14px rgba(10,92,143,.3)}
+        .logo .ic{width:24px;height:24px}
+        .brand{flex:1;min-width:190px;line-height:1.2}.brand b{display:block;font-size:1.05rem;font-weight:800}.brand small{color:var(--brand);font-weight:600;font-size:.76rem}
+        .top-chips{display:flex;gap:8px;flex-wrap:wrap}
+        .chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:.72rem;font-weight:700;border:1px solid transparent}
+        .chip .ic{width:13px;height:13px}
+        .chip.amber{background:#fef3c7;color:#b45309;border-color:#fcd34d}
+        .chip.green{background:#d1fae5;color:#047857;border-color:#6ee7b7}.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+        .chip.dark{background:rgba(255,255,255,.14);color:#e2e8f0;text-transform:uppercase;letter-spacing:.4px}
+        .chip.gold{background:#fbbf24;color:#422006;text-transform:uppercase;letter-spacing:.4px}
+        .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 80px}
+        .hero{position:relative;overflow:hidden;border-radius:24px;padding:26px 28px;color:#fff;background:linear-gradient(100deg,#0b2447 0%,#0a4a7c 62%,#0a5c8f 100%);box-shadow:0 14px 30px rgba(11,36,71,.28)}
+        .hero-in{position:relative;z-index:1;max-width:680px}
+        .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+        .hero h1{margin:0 0 6px;font-size:clamp(1.5rem,4.5vw,2.1rem);font-weight:800;letter-spacing:-.02em;line-height:1.15}
+        .hero p{margin:0;color:#dbe7f3;font-size:.93rem}
+        .hero-ic{position:absolute;right:-6px;bottom:-14px;opacity:.14;color:#fff}.hero-ic .ic{width:150px;height:150px;stroke-width:1.5}
+        .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+        .gbtn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;font-weight:600;font-size:.84rem;font-family:inherit;color:#fff;text-decoration:none;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
+        .gbtn:hover{background:rgba(255,255,255,.2)}.gbtn.solid{background:#fff;color:var(--brand);border-color:#fff}
+        .stepper{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px 8px 14px;margin:20px 0;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+        .stepper ol{list-style:none;margin:0;padding:0;display:flex;position:relative}
+        .stepper ol::before,.stepper ol::after{content:"";position:absolute;top:22px;left:10%;height:4px;border-radius:4px}
+        .stepper ol::before{right:10%;background:#e8edf3}
+        .stepper ol::after{background:var(--brand);width:calc(80% * var(--p,0));transition:width .3s}
+        .st{flex:1;text-align:center;position:relative;z-index:1;min-width:0}
+        .dot{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 8px;border:0;border-radius:14px;background:#eef2f7;color:#94a3b8;cursor:default;font:inherit}
+        .dot .ic{width:21px;height:21px}.dot .ck{display:none}
+        .st .lbl{display:block;font-size:.72rem;font-weight:600;color:#94a3b8;padding:0 2px}
+        .st.active .dot{background:var(--brand);color:#fff;box-shadow:0 0 0 4px rgba(10,92,143,.16),0 8px 16px rgba(10,92,143,.3)}.st.active .lbl{color:var(--brand);font-weight:700}
+        .st.done .dot{background:var(--ok);color:#fff;cursor:pointer}.st.done .ck{display:block}.st.done .mi{display:none}.st.done .lbl{color:var(--okd)}
+        .dot:focus-visible,.btn:focus-visible,.gbtn:focus-visible{outline:3px solid rgba(10,92,143,.4);outline-offset:2px}
+        .card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px 28px;margin:0 0 22px;box-shadow:0 10px 28px rgba(15,23,42,.07)}
+        .card>h2,.panel h2{margin:0;font-size:1.2rem;font-weight:700;letter-spacing:-.01em}
+        .card>h2{margin-bottom:12px}
+        .ph{display:flex;align-items:center;gap:12px;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+        .pic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:#e0f0fa;color:var(--brand);flex:none}
+        .ph .muted{margin:2px 0 0}
+        .muted{color:var(--mut);font-size:.88rem;margin:0 0 12px}
+        .grid{display:grid;gap:16px;margin-bottom:16px}.grid.top{align-items:start}
         .g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
-        @media(max-width:820px){.g3,.g4{grid-template-columns:repeat(2,1fr)}}
-        @media(max-width:540px){.g2,.g3,.g4{grid-template-columns:1fr}.card{padding:22px 18px;border-radius:26px}.sum{grid-template-columns:1fr}}
-        .f{display:flex;flex-direction:column;gap:9px;font-size:.86rem;font-weight:700;color:var(--mut);letter-spacing:.2px}
-        .f input,.f select{width:100%;border:0;outline:0;background:var(--bg);color:var(--tx);font:inherit;font-weight:500;font-size:1rem;
-          padding:14px 18px;border-radius:18px;box-shadow:var(--in);transition:box-shadow .2s}
-        .f select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:44px;
-          background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);
-          background-position:calc(100% - 22px) 52%,calc(100% - 16px) 52%;background-size:6px 6px,6px 6px;background-repeat:no-repeat}
-        .f input[readonly]{color:var(--mut);box-shadow:inset 3px 3px 6px var(--lo),inset -3px -3px 6px var(--hi)}
-        .f input:not([type=date]):not([type=number]):not([readonly]){text-transform:uppercase}
-        .f input::placeholder{color:var(--ph);text-transform:none;font-weight:400}
-        .f input:focus,.f select:focus{box-shadow:var(--in),0 0 0 3px color-mix(in srgb,var(--ac) 45%,transparent)}
-        .fs{border:0;padding:0;margin:0 0 18px;min-width:0}
-        .fs legend{padding:0;margin-bottom:14px;font-size:.92rem;font-weight:700;color:var(--mut)}
-        .opts{display:flex;flex-wrap:wrap;gap:16px 28px}
-        .o{position:relative;display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:400}
-        .o input{position:absolute;opacity:0;width:0;height:0}
-        .o i{flex:none;width:30px;height:30px;border-radius:11px;display:grid;place-items:center;
-          box-shadow:var(--outS);transition:box-shadow .18s}
-        .o:hover i{box-shadow:6px 6px 13px var(--lo),-6px -6px 13px var(--hi)}
-        .o.radio i{border-radius:50%}
-        .o i::after{content:"";width:12px;height:12px;border-radius:50%;background:linear-gradient(145deg,var(--ac2),var(--ac));transform:scale(0);transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
-        .o input:checked+i{box-shadow:inset 4px 4px 8px var(--lo),inset -4px -4px 8px var(--hi)}
-        .o input:checked+i::after{transform:scale(1)}
-        .o input:focus-visible+i{outline:3px solid color-mix(in srgb,var(--ac) 55%,transparent);outline-offset:3px}
-        .o b{font-weight:500;font-size:.95rem}
-        .btn{display:inline-block;border:0;cursor:pointer;text-decoration:none;font:inherit;font-weight:800;color:var(--tx);
-          padding:14px 28px;border-radius:20px;background:linear-gradient(145deg,var(--hi),var(--bg));box-shadow:var(--out);transition:box-shadow .15s,transform .15s}
-        .btn:hover{transform:translateY(-1px);box-shadow:11px 11px 22px var(--lo),-11px -11px 22px var(--hi)}
-        .btn:active{transform:none;background:var(--bg);box-shadow:inset 5px 5px 10px var(--lo),inset -5px -5px 10px var(--hi)}
-        .btn:focus-visible{outline:3px solid color-mix(in srgb,var(--ac) 55%,transparent);outline-offset:3px}
-        .btn.primary{color:var(--ac)}
-        .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
-        .other-input{margin-top:10px}
-        .cert{margin:6px 0 20px;align-items:flex-start}.cert b{font-weight:600;line-height:1.5}
-        .actions{display:flex;flex-wrap:wrap;gap:20px;margin-top:24px}
-        .sum{display:grid;grid-template-columns:minmax(140px,240px) 1fr;gap:12px 20px;margin:0}
-        .sum dt{color:var(--mut);font-size:.9rem}.sum dd{margin:0;font-weight:700;word-break:break-word}
-        .scroll{overflow-x:auto;border-radius:22px;padding:8px;box-shadow:var(--in)}
-        table{width:100%;border-collapse:collapse;font-size:.92rem}
-        th,td{text-align:left;padding:11px 14px;white-space:nowrap}th{color:var(--mut);font-weight:700}
-        .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:30px}
-        .tile{display:flex;flex-direction:column;gap:8px;padding:30px;border-radius:32px;text-decoration:none;color:var(--tx);
-          background:linear-gradient(145deg,var(--hi),var(--bg));box-shadow:16px 16px 32px var(--lo),-16px -16px 32px var(--hi);transition:box-shadow .15s,transform .15s}
-        .tile:hover{transform:translateY(-2px)}
-        .tile:active{transform:none;background:var(--bg);box-shadow:inset 8px 8px 16px var(--lo),inset -8px -8px 16px var(--hi)}
-        .tile:focus-visible,.lnk:focus-visible{outline:3px solid color-mix(in srgb,var(--ac) 55%,transparent);outline-offset:3px}
-        .tile .stat{align-self:flex-start;min-width:64px;height:64px;padding:0 16px;border-radius:20px;display:grid;place-items:center;
-          font-size:1.6rem;font-weight:800;color:var(--ac);background:var(--bg);box-shadow:var(--in);margin-bottom:10px}
-        .tile-t{font-size:1.25rem;font-weight:800}
-        .tile .muted{margin:0}
-        .lnk{color:var(--ac);font-weight:800;text-decoration:none;padding:6px 12px;border-radius:12px;box-shadow:var(--outS)}
-        .lnk:active{box-shadow:var(--in)}
+        @media(max-width:760px){.g3,.g4{grid-template-columns:repeat(2,1fr)}.card{padding:22px 18px}.hero{padding:22px 20px}}
+        @media(max-width:520px){.g2,.g3{grid-template-columns:1fr}.top-chips{width:100%}.stepper .lbl{font-size:.64rem}.dot{width:42px;height:42px}.stepper ol::before,.stepper ol::after{top:19px}}
+        .f{display:flex;flex-direction:column;gap:6px;font-size:.8rem;font-weight:700;min-width:0}
+        .req{color:var(--err);font-style:normal}
+        .f input,.f select,.pin,.row2 select{width:100%;height:46px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:#fafbfd;color:var(--ink);font-weight:500;font-size:.92rem;font-family:inherit;outline:0}
+        .f input::placeholder,.pin::placeholder{color:#94a3b8;font-weight:400}
+        .f input:focus,.f select:focus,.pin:focus,.row2 select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(10,92,143,.15);background:#fff}
+        .f input[readonly]{background:var(--soft);color:var(--mut)}
+        .f input:not([type=date]):not([readonly]):not([type=hidden]),.pin{text-transform:uppercase}
+        .f input::placeholder,.pin::placeholder{text-transform:none}
+        .f select,.row2 select{appearance:none;-webkit-appearance:none;padding-right:38px;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,#64748b 50%),linear-gradient(135deg,#64748b 50%,transparent 50%);background-position:calc(100% - 19px) 52%,calc(100% - 13px) 52%;background-size:6px 6px;background-repeat:no-repeat}
+        .hint{font-weight:400;color:var(--mut);font-size:.74rem}
+        .other-input{margin-top:6px}
+        .group{background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:18px;margin:0 0 16px}
+        .group>h3{margin:0 0 14px;font-size:.98rem;font-weight:700}
+        .group .grid:last-child{margin-bottom:0}
+        .gt{margin:0 0 12px;font-size:.74rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--brand)}
+        .lab{display:block;margin-bottom:8px;font-size:.84rem;font-weight:700}
+        .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:center}
+        @media(max-width:620px){.row2{grid-template-columns:1fr}}
+        .sh{display:flex;align-items:center;gap:8px;margin:6px 0 14px;font-size:1rem;font-weight:700}.sh .ic{color:var(--brand);width:17px;height:17px}.sh.top{margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}
+        .sh-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}.sh-row .sh{margin:0 0 14px}
+        .q{display:flex;justify-content:space-between;align-items:center;gap:10px 20px;flex-wrap:wrap;margin:0 0 12px}.q.stack{flex-direction:column;align-items:flex-start}
+        .ql{font-size:.86rem;font-weight:700}
+        .opts{display:flex;flex-wrap:wrap;gap:8px 18px}.opts.checkboxs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+        @media(max-width:760px){.opts.checkboxs{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.opts.checkboxs{grid-template-columns:1fr}}
+        .o{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:.88rem;font-weight:500}
+        .o input{width:17px;height:17px;margin:0;accent-color:var(--brand);flex:none}
+        .o.box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+        .o.box:has(input:checked){border-color:var(--brand);background:#eef7fc}
+        .o.pill{background:#e8f4fc;border:1px solid #bfe0f5;border-radius:10px;padding:7px 12px;color:var(--brand);font-weight:600;font-size:.8rem}
+        .certrow{align-items:flex-start;margin-top:16px}.certrow input{margin-top:3px}
+        .err{color:var(--err);font-size:.8rem;margin:6px 0 0}
+        .review{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:18px;margin:0 0 18px}
+        .review dt{font-size:.7rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#94a3b8}.review dd{margin:2px 0 0;font-weight:700;overflow-wrap:anywhere}.review .hl{color:var(--brand)}
+        @media(max-width:620px){.review{grid-template-columns:1fr}}
+        .cert{background:#fffbeb;border:1px solid #fde68a;border-radius:14px;padding:14px 18px;color:#92400e;font-size:.85rem}.cert p{margin:0 0 8px}.cert p:last-child{margin:0}
+        .foot{display:flex;justify-content:space-between;gap:12px;margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:600;font-size:.9rem;font-family:inherit;text-decoration:none;cursor:pointer}
+        .btn:hover{background:var(--soft)}.btn:disabled{opacity:.45;cursor:not-allowed}
+        .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 8px 16px rgba(10,92,143,.28)}.btn.primary:hover{background:#094f7b}
+        .btn.ok{background:var(--okd);border-color:var(--okd);color:#fff;box-shadow:0 8px 16px rgba(6,122,82,.28)}
+        .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}.actions.mid{justify-content:center}.btn.wide{flex:1 1 100%}
+        .sum{display:grid;grid-template-columns:minmax(140px,240px) 1fr;gap:10px 20px;margin:0}.sum dt{color:var(--mut);font-size:.86rem}.sum dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+        @media(max-width:540px){.sum{grid-template-columns:1fr}}
+        .done{max-width:480px;margin:10px auto 22px;text-align:center}.done .muted{margin-bottom:16px}
+        .okic{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;background:#d1fae5;color:var(--okd)}.okic .ic{width:28px;height:28px}
+        .ref{text-align:left;background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:.88rem}.ref span{color:var(--brand)}
+        .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:20px}
+        .tile{display:flex;align-items:center;gap:16px;padding:20px;background:#fff;border:1px solid var(--line);border-radius:20px;color:var(--ink);text-decoration:none;box-shadow:0 6px 18px rgba(15,23,42,.06)}
+        .tile:hover{border-color:var(--brand);box-shadow:0 10px 24px rgba(10,92,143,.14)}
+        .tile-ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:#e0f0fa;color:var(--brand);flex:none}.tile-ic .ic{width:22px;height:22px}
+        .tile-b{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.tile-b b{font-size:1.02rem;font-weight:700}.tile-b span{color:var(--mut);font-size:.84rem}
+        .tile-n{min-width:44px;height:44px;padding:0 12px;border-radius:12px;display:grid;place-items:center;background:var(--soft);font-size:1.25rem;font-weight:800;color:var(--brand)}
+        .need{grid-column:1/-1;margin:0}.need ul{margin:0;padding-left:20px;color:var(--mut);display:grid;gap:6px}
+        .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+        table{width:100%;border-collapse:collapse;font-size:.88rem}
+        th,td{text-align:left;padding:11px 14px;white-space:nowrap;border-bottom:1px solid var(--line)}tr:last-child td{border-bottom:0}
+        th{background:var(--soft);color:var(--mut);font-weight:700;font-size:.78rem}
+        .lnk{color:var(--brand);font-weight:700;text-decoration:none;padding:5px 12px;border-radius:8px;background:#e0f0fa}
         @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-        @media print{:root{--bg:#fff;--tx:#000;--mut:#444}body{background:#fff}.card,.sub,.seal{box-shadow:none;border:1px solid #ccc}.actions,.hero .btn{display:none}}
+        @media print{body{background:#fff}.top,.hero,.stepper,.actions,.foot{display:none}.card{box-shadow:none;border:1px solid #ccc}}
         """;
 
     static final String JS = """
-        const form = document.querySelector('form');
+        const form = document.getElementById('enrollForm');
+        const panels = [...form.querySelectorAll('.panel')], steps = [...form.querySelectorAll('.st')];
+        const prev = document.getElementById('prev'), next = document.getElementById('next'), sbtn = document.getElementById('submitBtn');
+        const cert = document.getElementById('certify'), certErr = document.getElementById('certErr');
+        let cur = 0;
         function val(n){
           const els = document.getElementsByName(n);
           if(!els.length) return '';
-          if(els[0].tagName === 'SELECT') return els[0].value;
-          const on = [...els].filter(e => e.checked).map(e => e.value);
-          return on.join('|');
+          const t = els[0].type;
+          if(t === 'radio' || t === 'checkbox') return [...els].filter(e => e.checked).map(e => e.value).join('|');
+          return els[0].value;
         }
         function refresh(){
           document.querySelectorAll('[data-if]').forEach(el => {
@@ -1155,20 +1298,89 @@ public class Enrollmentform {
           form.age.value = a >= 0 ? a : '';
         }
         form.addEventListener('change', () => { refresh(); calcAge(); });
-        form.addEventListener('reset', () => setTimeout(() => { refresh(); calcAge(); }));
         refresh();
-        const cert = document.getElementById('certify'), sbtn = document.getElementById('submitBtn');
-        function syncCert(){ sbtn.disabled = !cert.checked; }
-        cert.addEventListener('change', syncCert);
-        form.addEventListener('reset', () => setTimeout(syncCert));
-        syncCert();
+
+        /* grade: "Non-Graded" checkbox drives the hidden gradeType value */
+        const ng = document.getElementById('nonGraded'), gsel = document.getElementById('grade');
+        ng.addEventListener('change', () => {
+          form.elements.gradeType.value = ng.checked ? 'Non-graded (SNEd only)' : 'Graded';
+          gsel.disabled = ng.checked; gsel.required = !ng.checked;
+          if(ng.checked) gsel.value = '';
+          refresh();
+        });
+        /* permanent address: same-as-current checkbox drives the hidden permSame value */
+        const pc = document.getElementById('permChk'), pb = document.getElementById('permBox'), pn = document.getElementById('permNote');
+        pc.addEventListener('change', () => {
+          form.elements.permSame.value = pc.checked ? 'Yes' : 'No';
+          pb.hidden = pc.checked; pn.hidden = !pc.checked;
+        });
+        /* guardian contact is only required once a guardian name is typed */
+        const gIn = ['guardianLast', 'guardianFirst', 'guardianMiddle'].map(n => form.elements[n]);
+        gIn.forEach(e => e.addEventListener('input', () => { form.elements.guardianContact.required = gIn.some(x => x.value.trim() !== ''); }));
+
+        /* wizard */
+        function fv(n){
+          const e = form.elements[n];
+          if(!e) return '';
+          if(e.tagName === 'SELECT' && e.value === '__other__'){
+            const o = e.parentElement.querySelector('.other-input');
+            return o ? o.value.trim() : '';
+          }
+          return (e.value || '').trim();
+        }
+        function fillReview(){
+          const set = (id, t) => { document.getElementById(id).textContent = t || '-'; };
+          const given = [fv('firstName'), fv('middleName'), fv('extName')].filter(Boolean).join(' ');
+          set('rvName', [fv('lastName'), given].filter(Boolean).join(', ').toUpperCase());
+          const sy = form.elements.syFrom.value + ' - ' + form.elements.syTo.value;
+          set('rvGrade', (form.elements.gradeType.value === 'Graded' ? fv('grade') : 'Non-graded (SNED)') + ' (SY ' + sy + ')');
+          set('rvIds', 'LRN: ' + (fv('lrn') || '-') + ' | PSA: ' + (fv('psa') || '-'));
+          set('rvDob', (fv('birthdate') || '-') + ' (' + (fv('sex') || '-') + ')');
+          set('rvAddr', ['curHouse', 'curStreet', 'curBarangay', 'curCity', 'curProvince'].map(fv).filter(Boolean).join(', '));
+          const who = (p) => [fv(p + 'First'), fv(p + 'Last')].filter(Boolean).join(' ');
+          const parts = [];
+          if(who('mother')) parts.push(who('mother') + (fv('motherContact') ? ' - ' + fv('motherContact') : ''));
+          if(who('guardian')) parts.push(who('guardian') + (fv('guardianContact') ? ' - ' + fv('guardianContact') : ''));
+          set('rvContact', parts.join(' / '));
+        }
+        function show(i){
+          cur = i;
+          panels.forEach((p, k) => { p.hidden = k !== i; });
+          steps.forEach((s, k) => { s.classList.toggle('active', k === i); s.classList.toggle('done', k < i); });
+          form.style.setProperty('--p', i / (steps.length - 1));
+          prev.disabled = i === 0;
+          next.hidden = i === steps.length - 1;
+          sbtn.hidden = !next.hidden;
+          if(i === steps.length - 1) fillReview();
+          document.querySelector('.stepper').scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        function valid(i){
+          const els = [...panels[i].querySelectorAll('input,select')].filter(e => !e.disabled && !e.closest('[hidden]'));
+          for(const e of els){ if(!e.checkValidity()){ e.reportValidity(); return false; } }
+          return true;
+        }
+        next.addEventListener('click', () => { if(valid(cur)) show(cur + 1); });
+        prev.addEventListener('click', () => { if(cur > 0) show(cur - 1); });
+        form.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.go; if(k < cur) show(k); }));
+        cert.addEventListener('change', () => { certErr.hidden = cert.checked; });
+        form.addEventListener('submit', e => {
+          if(cur < steps.length - 1){ e.preventDefault(); if(valid(cur)) show(cur + 1); return; }
+          if(!cert.checked){ e.preventDefault(); certErr.hidden = false; cert.focus(); return; }
+          form.querySelectorAll('select[data-other]').forEach(s => {
+            if(s.value !== '__other__') return;
+            const t = s.parentElement.querySelector('.other-input').value.trim();
+            if(t){ const o = s.options[s.selectedIndex]; o.value = t; o.textContent = t; }
+            else { s.value = ''; }
+          });
+          sbtn.disabled = true;
+        });
 
         /* dropdowns with an "Others (type it)" box, and Province -> City -> Barangay */
         function syncOther(sel){
           const box = sel.parentElement.querySelector('.other-input');
           if(!box) return;
           const on = sel.value === '__other__';
-          box.hidden = !on;
+          box.hidden = !on; box.required = on;
           if(!on) box.value = '';
         }
         function fillSelect(sel, items){
@@ -1202,21 +1414,8 @@ public class Enrollmentform {
           cs.addEventListener('change', () => { syncOther(cs); loadBarangays(); });
           bs.addEventListener('change', () => syncOther(bs));
           loadCities();
-          return loadCities;
         }
-        const reloaders = provinceSelects.map(wireAddress);
+        provinceSelects.forEach(wireAddress);
         form.querySelectorAll('select[data-other]').forEach(s => s.addEventListener('change', () => syncOther(s)));
-        form.addEventListener('reset', () => setTimeout(() => {
-          form.querySelectorAll('select[data-other]').forEach(syncOther);
-          reloaders.forEach(r => r());
-        }));
-        form.addEventListener('submit', () => {
-          form.querySelectorAll('select[data-other]').forEach(s => {
-            if(s.value !== '__other__') return;
-            const t = s.parentElement.querySelector('.other-input').value.trim();
-            if(t){ const o = s.options[s.selectedIndex]; o.value = t; o.textContent = t; }
-            else { s.value = ''; }
-          });
-        });
         """;
 }
