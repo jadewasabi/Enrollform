@@ -9,11 +9,8 @@
 :root{
   --bg:#e6ebf3; --sd:#b9c3d6; --sl:#FFFFFF; --text:#2f3a56; --muted:#5f6b86;
   --navy:#3a60d6; --on-navy:#FFFFFF; --gold:#3a60d6; --err:#B3402F;
-  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light; box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#2a2e38; --sd:#1d2028; --sl:#363b47; --text:#e6e9f2; --muted:#a3abc0; --navy:#8ea6ff; --on-navy:#1d2028; --gold:#8ea6ff; --err:#E8806E;}}
-:root[data-theme="dark"]{--bg:#2a2e38; --sd:#1d2028; --sl:#363b47; --text:#e6e9f2; --muted:#a3abc0; --navy:#8ea6ff; --on-navy:#1d2028; --gold:#8ea6ff; --err:#E8806E;}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;user-select:none}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{min-height:100%;height:100%;display:flex;justify-content:center;align-items:center;background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;overflow:hidden}
