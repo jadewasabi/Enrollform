@@ -1,7 +1,7 @@
 package enrollmentform;
 
 
-
+//public class Enrollmentform {
 
     import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
@@ -717,6 +717,26 @@ public class Enrollmentform {
         return sb.append("</select></label>").toString();
     }
 
+    // Strand dropdown: each option is tied to a track so the list can be filtered when a Track is chosen
+    static String strandSel() {
+        KEYS.add("strand");
+        LABELS.put("strand", "Strand");
+        String[][] strands = {
+            {"Academic", "Accountancy, Business and Management (ABM)"},
+            {"Academic", "Humanities and Social Sciences (HUMSS)"},
+            {"Academic", "Science, Technology, Engineering and Mathematics (STEM)"},
+            {"Academic", "General Academic Strand (GAS)"},
+            {"Technical-Vocational-Livelihood (TVL)", "Information and Communications Technology (ICT)"},
+            {"Technical-Vocational-Livelihood (TVL)", "Home Economics (HE)"},
+            {"Technical-Vocational-Livelihood (TVL)", "Industrial Arts (IA)"},
+            {"Technical-Vocational-Livelihood (TVL)", "Agri-Fishery Arts (AFA)"}
+        };
+        StringBuilder sb = new StringBuilder("<label class='f'><span>Strand</span><select name='strand' id='strand'><option value=''>Select Strand</option>");
+        for (String[] st : strands)
+            sb.append("<option data-track='").append(esc(st[0])).append("'>").append(esc(st[1])).append("</option>");
+        return sb.append("</select></label>").toString();
+    }
+
     static String selOther(String name, String label, String role, Collection<String> options) {
         return selOther(name, label, role, options, "");
     }
@@ -851,7 +871,7 @@ public class Enrollmentform {
                         + permSame + "<div id='permBox'>" + perm + "</div><p class='muted' id='permNote' hidden>The permanent address will be saved as the same as the current address.</p>"
                         + "<h3 class='sh top'>" + ic("users") + "4. Parent's / Guardian's Information</h3>" + parents));
 
-     
+        // ---- step 4: SNED, transfer, SHS, modality
         String[] a1 = {"Attention Deficit Hyperactivity Disorder", "Autism Spectrum Disorder", "Cerebral Palsy",
                 "Emotional-Behavior Disorder", "Hearing Impairment", "Intellectual Disability", "Learning Disability",
                 "Multiple Disabilities", "Orthopedic/Physical Handicap", "Speech/Language Disorder",
@@ -874,14 +894,14 @@ public class Enrollmentform {
                 in("lastSchoolId", "School ID (6 digits)", "text", "inputmode='numeric' maxlength='6' placeholder='e.g. 104829'")));
         String shs = cond("grade:Grade 11|Grade 12", sub("7. Senior High School",
                 opts("semester", "Semester", "radio", "1st", "2nd")
-                        + grid(2, in("track", "Track", "text", ""), in("strand", "Strand", "text", ""))));
+                        + grid(2, selA("track", "Track", "", "Academic", "Technical-Vocational-Livelihood (TVL)", "Sports", "Arts and Design"), strandSel())));
         String mod = sub("8. Preferred Distance Learning Modality (Check all that apply)",
                 opts("modality", "Preferred distance learning modality", "checkbox", "Blended (Combination)", "Modular (Print)", "Modular (Digital)",
                         "Online", "Educational Television", "Radio-Based Instruction", "Homeschooling"));
         f.append(step(3, "pulse", "4. Special Needs, Transfer &amp; Learning Preferences", "Specify special education, transfer history, SHS strands, and distance learning options.",
                 sned + ret + shs + mod));
 
-       
+        // ---- step 5: review and certify
         KEYS.add("certify");
         LABELS.put("certify", "Certification accepted");
         KEYS.add("submittedBy");
@@ -1010,7 +1030,7 @@ public class Enrollmentform {
         return sb.append("]]}").toString();
     }
 
-  
+    /** Writes the row straight under the last used row of column A (callers are synchronized). */
     static void appendSheet(String tab, List<String> cells) throws IOException {
         int next = readTab(tab + "!A:A").size() + 1;
         sheets("PUT", "/values/" + enc(tab + "!A" + next) + "?valueInputOption=RAW", rowsJson(cells));
@@ -1096,7 +1116,7 @@ public class Enrollmentform {
                     ws();
                     String k = str();
                     ws();
-                    i++; 
+                    i++; // ':'
                     m.put(k, value());
                     ws();
                     if (s.charAt(i++) == '}') return m;
@@ -1288,6 +1308,17 @@ public class Enrollmentform {
             const cur = val(n).split('|');
             el.hidden = !v.split('|').some(x => cur.includes(x));
           });
+          filterStrands();
+        }
+        function filterStrands(){
+          const tr = form.elements.track, st = form.elements.strand;
+          if(!tr || !st) return;
+          [...st.options].forEach(o => {
+            if(!o.value) return;
+            const ok = !tr.value || o.dataset.track === tr.value;
+            o.hidden = !ok; o.disabled = !ok;
+          });
+          if(st.value && st.selectedOptions[0].disabled) st.value = '';
         }
         function calcAge(){
           const b = form.birthdate.value;
@@ -1418,4 +1449,4 @@ public class Enrollmentform {
         provinceSelects.forEach(wireAddress);
         form.querySelectorAll('select[data-other]').forEach(s => s.addEventListener('change', () => syncOther(s)));
         """;
-}
+            }
