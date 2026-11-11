@@ -11,50 +11,278 @@
   --navy:#3a60d6; --on-navy:#FFFFFF; --gold:#3a60d6; --err:#B3402F;
   color-scheme:light; box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;user-select:none}
-html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
-body{min-height:100%;height:100%;display:flex;justify-content:center;align-items:center;background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;overflow:hidden}
-.fit{width:calc(880px*var(--s,1));height:calc(560px*var(--s,1))}
-.stage{width:880px;height:560px;position:relative;transform:scale(var(--s,1));transform-origin:0 0}
-/* the shape morphs: rounded card -> circle -> card */
-.shape{position:absolute;left:50%;top:50%;translate:-50% -50%;width:880px;height:560px;border-radius:32px;background:var(--bg);overflow:hidden;
-  box-shadow:18px 18px 40px var(--sd),-18px -18px 40px var(--sl)}
-.content{position:absolute;left:50%;top:50%;width:880px;height:560px;margin:-280px 0 0 -440px}
-.layer{position:absolute;inset:0;background:var(--bg);display:flex}
-.layer.hidden{visibility:hidden}
-.half{position:relative;width:50%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 48px;overflow:hidden}
-.overlay{box-shadow:0 0 24px rgba(0,0,0,.06);z-index:1}
-/* wheel icon shown while the card is a circle */
-.wheel{position:absolute;left:50%;top:50%;width:150px;height:150px;margin:-75px 0 0 -75px;opacity:0;pointer-events:none}
-.wheel img{width:100%;height:100%;object-fit:contain;display:block}
-.wheel svg{width:100%;height:100%;fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round}
-h1{font-size:26px;font-weight:800;line-height:1.2;margin-bottom:18px}
-p.sub{font-size:12px;line-height:1.7;margin-bottom:26px;max-width:210px}
-.social{display:flex;gap:14px;margin-bottom:16px}
-.social a{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--text);
-  box-shadow:4px 4px 9px var(--sd),-4px -4px 9px var(--sl);font-size:12px;font-weight:800;cursor:pointer}
-.social svg{width:13px;height:13px;fill:currentColor}
-.or{font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:14px;text-transform:uppercase}
-input{width:270px;height:42px;transition:box-shadow .2s;border:0;outline:0;border-radius:18px;background:var(--bg);padding:0 18px;margin-bottom:12px;
-  font:500 12px 'Nunito',sans-serif;color:var(--text);box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl);user-select:text}
-input::placeholder{color:#8f9bb3;font-weight:400}
-input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl),0 0 0 3px color-mix(in srgb,var(--navy) 45%,transparent)}
-.btn:focus-visible,.social a:focus-visible{outline:3px solid color-mix(in srgb,var(--navy) 55%,transparent);outline-offset:3px}
-.forgot{font-size:10px;border-bottom:1px solid var(--muted);padding-bottom:2px;margin:4px 0 8px}
-.btn{height:38px;min-width:132px;padding:0 28px;border:0;border-radius:20px;font:700 10px 'Nunito',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;margin-top:14px;transition:transform .2s,box-shadow .2s}
-.btn.fill{background:linear-gradient(145deg,color-mix(in srgb,var(--navy) 80%,#fff),var(--navy));color:var(--on-navy);box-shadow:5px 5px 12px var(--sd),-4px -4px 10px var(--sl)}
-.btn.ghost{background:var(--bg);color:var(--text);box-shadow:5px 5px 12px var(--sd),-5px -5px 12px var(--sl);margin-top:0}
-.btn.small{height:34px;min-width:120px}
-.btn:hover{transform:translateY(-1px)}
-.btn:active{transform:scale(.97);box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)}
-.btn:disabled{opacity:.6;cursor:wait}
-.panel{display:flex;flex-direction:column;align-items:center;width:100%}
-.panel[hidden]{display:none}
-.alt{font-size:10px;color:var(--muted);margin:18px 0 10px}
-.msg{position:absolute;left:0;right:0;bottom:30px;padding:0 40px;min-height:14px;font-size:10px;font-weight:600;color:var(--err)}
-.orb{position:absolute;border-radius:50%;background:var(--bg);box-shadow:inset 8px 8px 18px var(--sd),inset -8px -8px 18px var(--sl);pointer-events:none}
-.o1{width:260px;height:260px;top:-150px;right:-60px}
-.o2{width:300px;height:300px;bottom:-190px;left:-70px}
+*,*::before,*::after{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  user-select:none
+}
+  
+html{
+  height:100%;
+  scroll-padding-top:env(safe-area-inset-top,0px)
+}
+  
+body{
+min-height:100%;
+  height:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Nunito',system-ui,sans-serif;overflow:hidden
+}
+  
+  
+.fit{width:calc(880px*var(--s,1));
+     height:calc(560px*var(--s,1))
+    }
+
+.stage{width:880px;
+       height:560px;
+       position:relative;
+       transform:scale(var(--s,1));
+       transform-origin:0 0
+      }
+
+.shape{
+  position:absolute;
+  left:50%;
+  top:50%;
+  translate:-50% -50%;
+  width:880px;
+  height:560px;
+  border-radius:32px;
+  background:var(--bg);
+  overflow:hidden;
+  box-shadow:18px 18px 40px var(--sd),-18px -18px 40px var(--sl)
+}
+  
+.content{position:absolute;
+         left:50%;
+         top:50%;
+         width:880px;
+         height:560px;
+         margin:-280px 0 0 -440px
+        }
+  
+.layer{position:absolute;
+       inset:0;
+       background:var(--bg);
+       display:flex
+      }
+  
+.layer.hidden{
+  visibility:hidden
+}
+  
+.half{position:relative;
+      width:50%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:0 48px;
+      overflow:hidden
+     }
+  
+.overlay{
+  box-shadow:0 0 24px rgba(0,0,0,.06);z-index:1
+        }
+
+.wheel{position:absolute;
+       left:50%;
+       top:50%;
+       width:150px;
+       height:150px;
+       margin:-75px 0 0 -75px;
+       opacity:0;pointer-events:none
+      }
+  
+.wheel img{width:100%;
+           height:100%;
+           object-fit:contain;
+           display:block
+          }
+  
+.wheel svg{width:100%;
+           height:100%;
+           fill:none;
+           stroke:var(--gold);stroke-width:3;stroke-linecap:round
+          }
+  
+h1{font-size:26px;
+   font-weight:800;
+   line-height:1.2;
+   margin-bottom:18px
+  }
+  
+p.sub{
+  font-size:12px;
+  line-height:1.7;
+  margin-bottom:26px;
+  max-width:210px
+}
+  
+.social{
+  display:flex;
+        gap:14px;
+        margin-bottom:16px
+       }
+  
+.social a{
+  width:36px;
+          height:36px;
+          border-radius:50%;
+          display:grid;
+          place-items:center;
+          color:var(--text);
+  box-shadow:4px 4px 9px var(--sd),-4px -4px 9px var(--sl);
+          font-size:12px;
+          font-weight:800;
+          cursor:pointer
+         }
+  
+.social svg{
+  width:13px;
+            height:13px;
+            fill:currentColor
+           }
+  
+.or{
+  font-size:9px;
+    letter-spacing:1px;
+    color:var(--muted);
+    margin-bottom:14px;
+    text-transform:uppercase
+   }
+  
+input{
+  width:270px;
+      height:42px;
+      transition:box-shadow .2s;
+      border:0;
+      outline:0;
+      border-radius:18px;
+      background:var(--bg);padding:0 18px;
+      margin-bottom:12px;
+  font:500 12px 'Nunito',sans-serif;color:var(--text);
+      box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl);
+      user-select:text
+     }
+  
+input::placeholder{
+  color:#8f9bb3;font-weight:400
+}
+  
+input:focus{
+  box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl),0 0 0 3px color-mix(in srgb,var(--navy) 45%,transparent)
+}
+  
+.btn:focus-visible,.social a:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--navy) 55%,transparent);
+  outline-offset:3px
+}
+  
+.forgot{
+  font-size:10px;border-bottom:1px solid var(--muted);
+        padding-bottom:2px;margin:4px 0 8px
+       }
+.btn{
+  height:38px;
+     min-width:132px;
+  padding:0 28px;
+  border:0;
+  border-radius:20px;
+  font:700 10px 'Nunito',sans-serif;letter-spacing:1.5px;
+  text-transform:uppercase;
+  cursor:pointer;
+  margin-top:14px;
+  transition:transform .2s,box-shadow .2s
+}
+  
+.btn.fill{
+  background:linear-gradient(145deg,color-mix(in srgb,var(--navy) 80%,#fff),var(--navy));color:var(--on-navy);
+  box-shadow:5px 5px 12px var(--sd),-4px -4px 10px var(--sl)
+}
+  
+.btn.ghost{
+  background:var(--bg);
+  color:var(--text);
+  box-shadow:5px 5px 12px var(--sd),-5px -5px 12px var(--sl);margin-top:0
+}
+  
+.btn.small{
+  height:34px;
+  min-width:120px
+}
+  
+.btn:hover{
+  transform:translateY(-1px)
+}
+  
+.btn:active{
+  transform:scale(.97);
+  box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)
+}
+  
+.btn:disabled {
+  opacity:.6;
+   cursor:wait
+  }
+.panel{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:100%
+}
+  
+.panel[hidden]{
+  display:none
+}
+  
+.alt{
+  font-size:10px;
+  color:var(--muted);
+  margin:18px 0 10px
+}
+  
+.msg{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:30px;
+  padding:0 40px;
+  min-height:14px;
+  font-size:10px;
+  font-weight:600;
+  color:var(--err)
+}
+  
+.orb{
+  position:absolute;
+  border-radius:50%;
+  background:var(--bg);
+  box-shadow:inset 8px 8px 18px var(--sd),inset -8px -8px 18px var(--sl);pointer-events:none
+}
+  
+.o1{
+  width:260px;
+  height:260px;
+  top:-150px;
+  right:-60px
+}
+  
+.o2{
+  width:300px;
+  height:300px;
+  bottom:-190px;
+  left:-70px
+}
+  
 </style>
 </head>
 <body>
@@ -62,7 +290,7 @@ input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)
  <div class="shape" id="shape">
   <div class="content" id="content">
 
-   <!-- Screen 1: Admin Pass | Create Student Account (or student log in) -->
+   
    <div class="layer" id="s1">
     <div class="half overlay">
       <div class="orb o1"></div><div class="orb o2"></div>
@@ -71,7 +299,7 @@ input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)
       <button class="btn ghost" data-go>Continue</button>
     </div>
     <div class="half">
-      <!-- new student: create account -->
+     
       <div class="panel" id="pSignup">
         <h1>Create Student Account</h1>
         <input id="suName" placeholder="Name" aria-label="Name" autocomplete="name"><input id="suEmail" placeholder="Email" type="email" aria-label="Email" autocomplete="email"><input id="suPass" placeholder="Password" type="password" aria-label="Password" autocomplete="new-password">
@@ -79,7 +307,7 @@ input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)
         <div class="alt">Already have an account?</div>
         <button class="btn ghost small" id="toLogin" type="button">Log in</button>
       </div>
-      <!-- returning student: log in -->
+    
       <div class="panel" id="pLogin" hidden>
         <h1>Student Log in</h1>
         <input id="stEmail" placeholder="Email" type="email" aria-label="Email" autocomplete="email"><input id="stPass" placeholder="Password" type="password" aria-label="Password" autocomplete="current-password">
@@ -92,12 +320,12 @@ input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)
     </div>
    </div>
 
-   <!-- Screen 2: Admin sign in | Student Pass -->
+ 
    <div class="layer hidden" id="s2">
     <div class="half">
       <h1>Admin Pass</h1>
 
-      <input id="siEmail" placeholder="Email" type="email" aria-label="Email" autocomplete="email"><input id="siPass" placeholder="Password" type="password" aria-label="Password" autocomplete="current-password">
+      <input id="siEmail" placeholder="Name Pass" type="email" aria-label="Email" autocomplete="email"><input id="siPass" placeholder="Password" type="password" aria-label="Password" autocomplete="current-password">
 
       <button class="btn fill" id="btnSignin" type="button" style="margin-top:6px">Sign in</button>
       <div class="msg" id="siMsg" role="alert"></div>
@@ -118,7 +346,7 @@ input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)
 </div></div>
 <script>
 (function(){
-  var DURATION=2400, CIRCLE=300;           // total ms, circle diameter px
+  var DURATION=2400, CIRCLE=300;        
   var shape=document.getElementById('shape'), content=document.getElementById('content'), wheel=document.getElementById('wheel');
   var s1=document.getElementById('s1'), s2=document.getElementById('s2'), showing=s1, busy=false;
   var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -134,11 +362,10 @@ input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)
     to.classList.remove('hidden'); showing.classList.add('hidden'); showing=to;
     suMsg.textContent=''; siMsg.textContent=''; stMsg.textContent='';
   }
-  function go(midFn){            // midFn = what to change while the wheel is spinning (default: swap the two screens)
-    if(busy)return; busy=true;
+  function go(midFn){          
     if(reduce){(midFn||swap)();busy=false;return;}
     var c=CIRCLE+'px';
-    // card -> circle (0-.28) | hold & spin as a wheel (.28-.72, content swaps at .5) | circle -> card (.72-1)
+  
     shape.animate([
       {width:'880px',height:'560px',borderRadius:'32px',transform:'rotate(0deg)',offset:0,easing:EASE},
       {width:c,height:c,borderRadius:'50%',transform:'rotate(0deg)',offset:.28,easing:'cubic-bezier(.45,0,.55,1)'},
@@ -152,7 +379,7 @@ input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)
   }
   document.querySelectorAll('[data-go]').forEach(function(b){b.addEventListener('click',function(){go();});});
 
-  /* ---- connect to the Java server (/signup, /signin) ---- */
+ //connect sa java
   var suMsg=document.getElementById('suMsg'), siMsg=document.getElementById('siMsg'), stMsg=document.getElementById('stMsg');
   function submit(url,fields,btn,msg){
     msg.textContent=''; btn.disabled=true;
@@ -180,7 +407,7 @@ input:focus{box-shadow:inset 3px 3px 7px var(--sd),inset -3px -3px 7px var(--sl)
   [siEmail,siPass].forEach(function(i){i.addEventListener('keydown',function(e){if(e.key==='Enter')btnSignin.click();});});
   [stEmail,stPass].forEach(function(i){i.addEventListener('keydown',function(e){if(e.key==='Enter')btnStLogin.click();});});
 
-  /* ---- student: switch between "Create account" and "Log in" ---- */
+ //switching stu and admin
   var pSignup=document.getElementById('pSignup'), pLogin=document.getElementById('pLogin');
   function showLogin(on){
     pSignup.hidden=on; pLogin.hidden=!on;
