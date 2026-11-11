@@ -1,7 +1,7 @@
 package enrollmentform;
 
 
-//public class Enrollmentform {
+
 
     import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
@@ -693,7 +693,7 @@ public class Enrollmentform {
         return "<label class='f'><span>" + label + req(attrs) + "</span><input name='" + name + "' type='" + type + "' " + attrs + "></label>";
     }
 
-    // input without a visible label (placeholder only), used for the parent / guardian rows
+  
     static String pin(String name, String label, String ph, String type, String attrs) {
         KEYS.add(name);
         LABELS.put(name, label);
@@ -717,7 +717,7 @@ public class Enrollmentform {
         return sb.append("</select></label>").toString();
     }
 
-    // Strand dropdown: each option is tied to a track so the list can be filtered when a Track is chosen
+   //strand drop
     static String strandSel() {
         KEYS.add("strand");
         LABELS.put("strand", "Strand");
@@ -741,7 +741,7 @@ public class Enrollmentform {
         return selOther(name, label, role, options, "");
     }
 
-    //drop down st
+   
     static String selOther(String name, String label, String role, Collection<String> options, String attrs) {
         KEYS.add(name);
         LABELS.put(name, label);
@@ -819,7 +819,7 @@ public class Enrollmentform {
                 "Please provide accurate information. Required fields are marked with an asterisk (*). Answers are saved in capital letters.", "{{NAV}}"));
         f.append("<form method='post' action='/submit' id='enrollForm' autocomplete='off'>").append(stepper()).append("<div class='card wiz'>");
 
-        // ---- step 1: school year, LRN, grade
+        //s1
         String sy = "<label class='f'><span>School Year <i class='req'>*</i></span><input type='text' value='" + SCHOOL_YEAR_START + " - " + SCHOOL_YEAR_END + "' readonly></label>";
         String syHid = hid("syFrom", "School year starts", "" + SCHOOL_YEAR_START) + hid("syTo", "School year ends", "" + SCHOOL_YEAR_END);
         String lrn = in("lrn", "Learner Reference No. (LRN)", "text", "inputmode='numeric' maxlength='12' pattern='\\d{12}' title='12 digits' placeholder='12-digit LRN (if applicable)'")
@@ -838,7 +838,7 @@ public class Enrollmentform {
         f.append(step(0, "school", "1. School Year &amp; Grade Level Information", "Specify target academic year, grade level, and Learner Reference Number (LRN).",
                 "<div class='grid g2'>" + sy + lrn + "</div>" + syHid + gradeBox + kinder));
 
-        // ---- step 2: learner's personal information
+       //s2
         String psa = in("psa", "PSA Birth Certificate No. (If available upon registration)", "text", "placeholder='Enter PSA Birth Certificate Number'");
         String last = in("lastName", "Last Name", "text", "required placeholder='Dela Cruz'");
         String first = in("firstName", "First Name", "text", "required placeholder='Juan'");
@@ -858,7 +858,7 @@ public class Enrollmentform {
         f.append(step(1, "user", "2. Learner's Personal Information", "Ensure details match the learner's Birth Certificate.",
                 psa + grid(4, last, first, mid, ext) + grid(3, dob, age, sex) + grid(3, bp, tongue, rel) + "<div class='grid g2 top'>" + ip + fp + "</div>"));
 
-        // ---- step 3: addresses and parents
+       //s3
         String cur = addr("cur", "current");
         String permSame = hid("permSame", "Is your permanent address the same as your current address?", "No");
         String perm = addr("perm", "permanent");
@@ -871,7 +871,7 @@ public class Enrollmentform {
                         + permSame + "<div id='permBox'>" + perm + "</div><p class='muted' id='permNote' hidden>The permanent address will be saved as the same as the current address.</p>"
                         + "<h3 class='sh top'>" + ic("users") + "4. Parent's / Guardian's Information</h3>" + parents));
 
-        // ---- step 4: SNED, transfer, SHS, modality
+       //s4
         String[] a1 = {"Attention Deficit Hyperactivity Disorder", "Autism Spectrum Disorder", "Cerebral Palsy",
                 "Emotional-Behavior Disorder", "Hearing Impairment", "Intellectual Disability", "Learning Disability",
                 "Multiple Disabilities", "Orthopedic/Physical Handicap", "Speech/Language Disorder",
@@ -901,7 +901,7 @@ public class Enrollmentform {
         f.append(step(3, "pulse", "4. Special Needs, Transfer &amp; Learning Preferences", "Specify special education, transfer history, SHS strands, and distance learning options.",
                 sned + ret + shs + mod));
 
-        // ---- step 5: review and certify
+        //s4
         KEYS.add("certify");
         LABELS.put("certify", "Certification accepted");
         KEYS.add("submittedBy");
@@ -1030,7 +1030,7 @@ public class Enrollmentform {
         return sb.append("]]}").toString();
     }
 
-    /** Writes the row straight under the last used row of column A (callers are synchronized). */
+   
     static void appendSheet(String tab, List<String> cells) throws IOException {
         int next = readTab(tab + "!A:A").size() + 1;
         sheets("PUT", "/values/" + enc(tab + "!A" + next) + "?valueInputOption=RAW", rowsJson(cells));
@@ -1116,7 +1116,7 @@ public class Enrollmentform {
                     ws();
                     String k = str();
                     ws();
-                    i++; // ':'
+                    i++; 
                     m.put(k, value());
                     ws();
                     if (s.charAt(i++) == '}') return m;
