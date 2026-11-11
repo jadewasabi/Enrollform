@@ -1,7 +1,7 @@
 package enrollmentform;
 
 
-//public class Enrollmentform {
+
 
     import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
@@ -851,7 +851,7 @@ public class Enrollmentform {
                         + permSame + "<div id='permBox'>" + perm + "</div><p class='muted' id='permNote' hidden>The permanent address will be saved as the same as the current address.</p>"
                         + "<h3 class='sh top'>" + ic("users") + "4. Parent's / Guardian's Information</h3>" + parents));
 
-        // ---- step 4: SNED, transfer, SHS, modality
+     
         String[] a1 = {"Attention Deficit Hyperactivity Disorder", "Autism Spectrum Disorder", "Cerebral Palsy",
                 "Emotional-Behavior Disorder", "Hearing Impairment", "Intellectual Disability", "Learning Disability",
                 "Multiple Disabilities", "Orthopedic/Physical Handicap", "Speech/Language Disorder",
@@ -881,7 +881,7 @@ public class Enrollmentform {
         f.append(step(3, "pulse", "4. Special Needs, Transfer &amp; Learning Preferences", "Specify special education, transfer history, SHS strands, and distance learning options.",
                 sned + ret + shs + mod));
 
-        // ---- step 5: review and certify
+       
         KEYS.add("certify");
         LABELS.put("certify", "Certification accepted");
         KEYS.add("submittedBy");
@@ -1010,7 +1010,7 @@ public class Enrollmentform {
         return sb.append("]]}").toString();
     }
 
-    /** Writes the row straight under the last used row of column A (callers are synchronized). */
+  
     static void appendSheet(String tab, List<String> cells) throws IOException {
         int next = readTab(tab + "!A:A").size() + 1;
         sheets("PUT", "/values/" + enc(tab + "!A" + next) + "?valueInputOption=RAW", rowsJson(cells));
@@ -1096,7 +1096,7 @@ public class Enrollmentform {
                     ws();
                     String k = str();
                     ws();
-                    i++; // ':'
+                    i++; 
                     m.put(k, value());
                     ws();
                     if (s.charAt(i++) == '}') return m;
