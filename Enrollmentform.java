@@ -191,6 +191,7 @@ public class Enrollmentform {
                     else serveSite(ex, "index.html");
                 } else if (path.equals("/signup") && post) json(ex, signup(ex));
                 else if (path.equals("/signin") && post) json(ex, signin(ex));
+                else if (path.equals("/reset") && post) json(ex, resetPassword(ex));
                 else if (path.equals("/logout")) { logout(ex); redirect(ex, "/"); }
                 else if (path.equals("/enroll") && get) {
                     if (user == null) redirect(ex, "/login");
@@ -411,6 +412,31 @@ public class Enrollmentform {
         return ok("/home");
     }
 
+
+    // Forgot password: no email service is configured, so identity is checked with the email + full name used at signup.
+    static final Map<String, long[]> RESET_TRIES = new ConcurrentHashMap<>(); // email -> {count, windowStartMillis}
+
+    static String normName(String n) { return n.trim().replaceAll("\\s+", " ").toLowerCase(); }
+
+    static synchronized String resetPassword(HttpExchange ex) throws IOException {
+        Map<String, List<String>> in = parseForm(body(ex));
+        String email = first(in, "email").trim().toLowerCase(), name = first(in, "name"), pw = first(in, "password");
+        long now = System.currentTimeMillis();
+        long[] t = RESET_TRIES.compute(email, (k, v) -> v == null || now - v[1] > 600_000 ? new long[]{1, now} : new long[]{v[0] + 1, v[1]});
+        if (t[0] > 5) return err("Too many attempts. Please wait 10 minutes and try again.");
+        if (pw.length() < 6) return err("New password must be at least 6 characters.");
+        String bad = err("We couldn't match that email and name. Check them and try again.");
+        if (email.equals(ADMIN_EMAIL)) return bad;
+        String[] u = findUser(email);
+        if (u == null || u.length < 4 || name.isBlank() || !normName(u[3]).equals(normName(name))) return bad;
+        byte[] salt = new byte[16];
+        RNG.nextBytes(salt);
+        addUser(email, Base64.getEncoder().encodeToString(salt), hash(pw, salt), u[3], LocalDateTime.now().withNano(0).toString());
+        SESSIONS.values().removeIf(v -> v[0].equals(email)); // log out anywhere the old password was used
+        RESET_TRIES.remove(email);
+        return "{\"ok\":true,\"message\":\"Password changed. You can log in now.\"}";
+    }
+
     static String hash(String pw, byte[] salt) {
         try {
             var spec = new PBEKeySpec(pw.toCharArray(), salt, 120_000, 256);
@@ -420,9 +446,10 @@ public class Enrollmentform {
     }
 
     static synchronized String[] findUser(String email) throws IOException {
+        String[] found = null; // the latest row for an email wins, so a reset (which appends) replaces the old password
         for (List<String> c : USE_SHEETS ? readTab(TAB_USERS + "!A:E") : readCsv(USERS))
-            if (c.size() >= 3 && c.get(0).equals(email)) return new String[]{c.get(0), c.get(1), c.get(2)};
-        return null;
+            if (c.size() >= 3 && c.get(0).equals(email)) found = new String[]{c.get(0), c.get(1), c.get(2), c.size() > 3 ? c.get(3) : ""};
+        return found;
     }
 
     static synchronized void addUser(String email, String salt, String hash, String name, String created) throws IOException {
@@ -563,12 +590,14 @@ public class Enrollmentform {
 
    //stud acc
     static synchronized List<String[]> userList() throws IOException {
-        List<String[]> out = new ArrayList<>();
+        Map<String, String[]> seen = new LinkedHashMap<>();
         for (List<String> c : USE_SHEETS ? readTab(TAB_USERS + "!A:E") : readCsv(USERS)) {
             if (c.size() < 4 || c.get(0).equals("email")) continue;
-            out.add(new String[]{c.get(0), c.get(3), c.size() > 4 ? c.get(4) : ""});
+            String[] prev = seen.get(c.get(0));
+            // keep the original signup date when a password reset appended a newer row
+            seen.put(c.get(0), new String[]{c.get(0), c.get(3), prev != null ? prev[2] : (c.size() > 4 ? c.get(4) : "")});
         }
-        return out;
+        return new ArrayList<>(seen.values());
     }
 
     static String userName(String email) throws IOException {
