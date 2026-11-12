@@ -1,7 +1,7 @@
 package enrollmentform;
 
 
-
+//public class Enrollmentform {
 
     import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
@@ -185,27 +185,27 @@ public class Enrollmentform {
                 boolean admin = user != null && user[1].equals("admin");
 
                 if (path.equals("/") && get) {
+                    serveSite(ex, "school.html");
+                } else if (path.equals("/login") && get) {
                     if (user != null) redirect(ex, "/home");
-                    else if (!Files.exists(INDEX)) send(ex, 500, page("Missing file",
-                            "<section class='card'><h2>index.html not found</h2><p>Put index.html in the folder you run the program from.</p></section>", ""));
-                    else send(ex, 200, Files.readString(INDEX, StandardCharsets.UTF_8));
+                    else serveSite(ex, "index.html");
                 } else if (path.equals("/signup") && post) json(ex, signup(ex));
                 else if (path.equals("/signin") && post) json(ex, signin(ex));
                 else if (path.equals("/logout")) { logout(ex); redirect(ex, "/"); }
                 else if (path.equals("/enroll") && get) {
-                    if (user == null) redirect(ex, "/");
+                    if (user == null) redirect(ex, "/login");
                     else send(ex, 200, FORM.replace("{{NAV}}", nav(admin)));
                 } else if (path.equals("/submit") && post) {
-                    if (user == null) redirect(ex, "/");
+                    if (user == null) redirect(ex, "/login");
                     else send(ex, 200, submit(ex, user));
                 } else if (path.equals("/home") && get) {
-                    if (user == null) redirect(ex, "/");
+                    if (user == null) redirect(ex, "/login");
                     else send(ex, 200, home(user, admin));
                 } else if (path.equals("/my") && get) {
-                    if (user == null) redirect(ex, "/");
+                    if (user == null) redirect(ex, "/login");
                     else send(ex, 200, myPage(user));
                 } else if (path.equals("/view") && get) {
-                    if (user == null) redirect(ex, "/");
+                    if (user == null) redirect(ex, "/login");
                     else {
                         String h = viewRecord(ex.getRequestURI().getQuery(), user, admin);
                         if (h == null) send(ex, 404, page("Not found",
@@ -213,11 +213,17 @@ public class Enrollmentform {
                         else send(ex, 200, h);
                     }
                 } else if (path.equals("/records") || path.equals("/users")) {
-                    if (user == null) redirect(ex, "/");
+                    if (user == null) redirect(ex, "/login");
                     else if (!admin) send(ex, 403, page("Admins only",
                             "<section class='card'><h2>Admins only</h2><p class='muted'>This page is only available to the administrator account.</p>"
                                     + "<div class='actions'><a class='btn primary' href='/home'>Home</a><a class='btn' href='/logout'>Log out</a></div></section>", ""));
                     else send(ex, 200, path.equals("/users") ? usersPage() : records());
+                } else if (get && path.matches("/(school|about|contact)\\.html")) {
+                    serveSite(ex, path.substring(1));
+                } else if (get && path.matches("/school\\.(css|js)")) {
+                    sendText(ex, path.substring(1), path.endsWith(".css") ? "text/css" : "text/javascript");
+                } else if (get && path.matches("/images/[A-Za-z0-9_-]+\\.(png|jpe?g|gif|svg|webp)")) {
+                    sendImage(ex, path.substring(1));
                 } else if (get && path.matches("/[A-Za-z0-9_-]+\\.(png|jpe?g|gif|svg|webp|ico)")) {
                     sendImage(ex, path.substring(1));
                 } else send(ex, 404, page("Not found",
@@ -281,6 +287,31 @@ public class Enrollmentform {
         ex.getResponseHeaders().set("Content-Type", "text/html; charset=utf-8");
         ex.getResponseHeaders().set("Cache-Control", "no-store");
         ex.sendResponseHeaders(code, b.length);
+        ex.getResponseBody().write(b);
+        ex.close();
+    }
+
+    // School website pages (school.html, about.html, contact.html) and the login page (index.html)
+    static void serveSite(HttpExchange ex, String name) throws IOException {
+        Path dir = INDEX.toAbsolutePath().getParent();
+        Path f = dir == null ? Paths.get(name) : dir.resolve(name);
+        if (!Files.isRegularFile(f)) {
+            send(ex, 500, page("Missing file",
+                    "<section class='card'><h2>" + esc(name) + " not found</h2><p>Put " + esc(name)
+                            + " in the same folder as index.html.</p></section>", ""));
+            return;
+        }
+        send(ex, 200, Files.readString(f, StandardCharsets.UTF_8));
+    }
+
+    static void sendText(HttpExchange ex, String name, String type) throws IOException {
+        Path dir = INDEX.toAbsolutePath().getParent();
+        Path f = dir == null ? Paths.get(name) : dir.resolve(name);
+        if (!Files.isRegularFile(f)) { send(ex, 404, page("Not found", "<section class='card'><h2>Not found</h2></section>", "")); return; }
+        byte[] b = Files.readAllBytes(f);
+        ex.getResponseHeaders().set("Content-Type", type + "; charset=utf-8");
+        ex.getResponseHeaders().set("Cache-Control", "no-store");
+        ex.sendResponseHeaders(200, b.length);
         ex.getResponseBody().write(b);
         ex.close();
     }
@@ -693,7 +724,7 @@ public class Enrollmentform {
         return "<label class='f'><span>" + label + req(attrs) + "</span><input name='" + name + "' type='" + type + "' " + attrs + "></label>";
     }
 
-  
+    // input without a visible label (placeholder only), used for the parent / guardian rows
     static String pin(String name, String label, String ph, String type, String attrs) {
         KEYS.add(name);
         LABELS.put(name, label);
@@ -717,7 +748,7 @@ public class Enrollmentform {
         return sb.append("</select></label>").toString();
     }
 
-   //strand drop
+    // Strand dropdown: each option is tied to a track so the list can be filtered when a Track is chosen
     static String strandSel() {
         KEYS.add("strand");
         LABELS.put("strand", "Strand");
@@ -741,7 +772,7 @@ public class Enrollmentform {
         return selOther(name, label, role, options, "");
     }
 
-   
+    //drop down st
     static String selOther(String name, String label, String role, Collection<String> options, String attrs) {
         KEYS.add(name);
         LABELS.put(name, label);
@@ -819,7 +850,7 @@ public class Enrollmentform {
                 "Please provide accurate information. Required fields are marked with an asterisk (*). Answers are saved in capital letters.", "{{NAV}}"));
         f.append("<form method='post' action='/submit' id='enrollForm' autocomplete='off'>").append(stepper()).append("<div class='card wiz'>");
 
-        //s1
+        // ---- step 1: school year, LRN, grade
         String sy = "<label class='f'><span>School Year <i class='req'>*</i></span><input type='text' value='" + SCHOOL_YEAR_START + " - " + SCHOOL_YEAR_END + "' readonly></label>";
         String syHid = hid("syFrom", "School year starts", "" + SCHOOL_YEAR_START) + hid("syTo", "School year ends", "" + SCHOOL_YEAR_END);
         String lrn = in("lrn", "Learner Reference No. (LRN)", "text", "inputmode='numeric' maxlength='12' pattern='\\d{12}' title='12 digits' placeholder='12-digit LRN (if applicable)'")
@@ -838,7 +869,7 @@ public class Enrollmentform {
         f.append(step(0, "school", "1. School Year &amp; Grade Level Information", "Specify target academic year, grade level, and Learner Reference Number (LRN).",
                 "<div class='grid g2'>" + sy + lrn + "</div>" + syHid + gradeBox + kinder));
 
-       //s2
+        // ---- step 2: learner's personal information
         String psa = in("psa", "PSA Birth Certificate No. (If available upon registration)", "text", "placeholder='Enter PSA Birth Certificate Number'");
         String last = in("lastName", "Last Name", "text", "required placeholder='Dela Cruz'");
         String first = in("firstName", "First Name", "text", "required placeholder='Juan'");
@@ -858,7 +889,7 @@ public class Enrollmentform {
         f.append(step(1, "user", "2. Learner's Personal Information", "Ensure details match the learner's Birth Certificate.",
                 psa + grid(4, last, first, mid, ext) + grid(3, dob, age, sex) + grid(3, bp, tongue, rel) + "<div class='grid g2 top'>" + ip + fp + "</div>"));
 
-       //s3
+        // ---- step 3: addresses and parents
         String cur = addr("cur", "current");
         String permSame = hid("permSame", "Is your permanent address the same as your current address?", "No");
         String perm = addr("perm", "permanent");
@@ -871,7 +902,7 @@ public class Enrollmentform {
                         + permSame + "<div id='permBox'>" + perm + "</div><p class='muted' id='permNote' hidden>The permanent address will be saved as the same as the current address.</p>"
                         + "<h3 class='sh top'>" + ic("users") + "4. Parent's / Guardian's Information</h3>" + parents));
 
-       //s4
+        // ---- step 4: SNED, transfer, SHS, modality
         String[] a1 = {"Attention Deficit Hyperactivity Disorder", "Autism Spectrum Disorder", "Cerebral Palsy",
                 "Emotional-Behavior Disorder", "Hearing Impairment", "Intellectual Disability", "Learning Disability",
                 "Multiple Disabilities", "Orthopedic/Physical Handicap", "Speech/Language Disorder",
@@ -901,7 +932,7 @@ public class Enrollmentform {
         f.append(step(3, "pulse", "4. Special Needs, Transfer &amp; Learning Preferences", "Specify special education, transfer history, SHS strands, and distance learning options.",
                 sned + ret + shs + mod));
 
-        //s4
+        // ---- step 5: review and certify
         KEYS.add("certify");
         LABELS.put("certify", "Certification accepted");
         KEYS.add("submittedBy");
@@ -1030,7 +1061,7 @@ public class Enrollmentform {
         return sb.append("]]}").toString();
     }
 
-   
+    /** Writes the row straight under the last used row of column A (callers are synchronized). */
     static void appendSheet(String tab, List<String> cells) throws IOException {
         int next = readTab(tab + "!A:A").size() + 1;
         sheets("PUT", "/values/" + enc(tab + "!A" + next) + "?valueInputOption=RAW", rowsJson(cells));
@@ -1116,7 +1147,7 @@ public class Enrollmentform {
                     ws();
                     String k = str();
                     ws();
-                    i++; 
+                    i++; // ':'
                     m.put(k, value());
                     ws();
                     if (s.charAt(i++) == '}') return m;
@@ -1449,4 +1480,4 @@ public class Enrollmentform {
         provinceSelects.forEach(wireAddress);
         form.querySelectorAll('select[data-other]').forEach(s => s.addEventListener('change', () => syncOther(s)));
         """;
-            }
+                                                                                                       }
