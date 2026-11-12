@@ -1201,11 +1201,20 @@ public class Enrollmentform {
                 + "<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'><title>" + esc(title) + "</title>"
                 + "<link rel='preconnect' href='https://fonts.googleapis.com'>"
                 + "<link href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap' rel='stylesheet'>"
-                + "<style>" + CSS + "</style></head><body>"
+                + "<style>" + CSS + "</style>" + SLIDE_CSS + "</head><body>"
                 + "<div class='top'><div class='top-in'><span class='logo'>" + ic("cap") + "</span><div class='brand'><b>Taal High School - Department of Education</b><small>Taal High School Enrollment Portal</small></div>"
                 + "<div class='top-chips'><span class='chip amber'>" + ic("shield") + "Official Enrollment Portal</span><span class='chip green'><i class='dot'></i>Registration Open</span></div></div></div>"
-                + "<main class='wrap'>" + body + "</main><script>" + script + "</script></body></html>";
+                + "<nav class='sitenav'><a href='/'>Home</a><a href='/about.html'>About</a><a href='/contact.html'>Contact</a><a href='/enroll'>Enroll</a></nav>"
+                + "<main class='wrap'>" + body + "</main><script>" + script + "</script>" + SLIDE_JS + "</body></html>";
     }
+
+    static final String SLIDE_CSS = """
+<style id="slide-css">html{overflow-x:hidden}@keyframes slideIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}@keyframes slideOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-60px)}}body{animation:slideIn .4s ease backwards}body.slide-out{animation:slideOut .28s ease forwards;pointer-events:none}@media (prefers-reduced-motion:reduce){body,body.slide-out{animation:none}}</style>
+        """;
+
+    static final String SLIDE_JS = """
+<script id="slide-js">(function(){document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a[href]");if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.button||a.target==="_blank"||a.hasAttribute("download"))return;var h=a.getAttribute("href");if(!h||h[0]==="#"||/^(mailto|tel|javascript):/i.test(h))return;var u=new URL(a.href,location.href);if(u.origin!==location.origin||(u.pathname===location.pathname&&u.search===location.search))return;e.preventDefault();document.body.classList.add("slide-out");setTimeout(function(){location.href=u.href},260)});window.addEventListener("pageshow",function(e){if(e.persisted)document.body.classList.remove("slide-out")})})();</script>
+        """;
 
     static final String CSS = """
         :root{--bg:#f8fafc;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--brand:#0a5c8f;--navy:#0b2447;--ok:#10b981;--okd:#067a52;--err:#e11d48;--soft:#f1f5f9;color-scheme:light}
@@ -1213,6 +1222,9 @@ public class Enrollmentform {
         body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Plus Jakarta Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
         [hidden]{display:none!important}
         .ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        .sitenav{background:var(--navy);display:flex;justify-content:center;gap:4px;padding:6px 12px;flex-wrap:wrap}
+        .sitenav a{color:#fff;text-decoration:none;font-weight:600;font-size:.88rem;padding:8px 16px;border-radius:8px}
+        .sitenav a:hover{background:rgba(255,255,255,.16)}
         .top{background:#fff;border-bottom:1px solid var(--line)}
         .top-in{max-width:1040px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
         .logo{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#1c86c7,#0a5c8f);box-shadow:0 6px 14px rgba(10,92,143,.3)}
