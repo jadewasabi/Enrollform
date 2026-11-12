@@ -7,8 +7,9 @@ var SCHOOL = {
   mobile:  "0900 000 0000",
   email:   "youradmin@gmail.com"
 };
-// Address of the enrollment system (the Java app). Change this when you deploy.
-var APP_URL = "http://localhost:8080/";
+// Where the Enrollment buttons go: the login page of the Java app.
+// Keep "/login" when the Java app serves this site. If you open these files directly, use the full address, e.g. "http://localhost:8080/login".
+var APP_URL = "/login";
 // =====================================================================
 
 document.querySelectorAll("[data-fill]").forEach(function (el) {
