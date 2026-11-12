@@ -317,7 +317,15 @@ input:focus{
         <button class="btn fill" id="btnStLogin" type="button">Log in</button>
         <div class="alt">New here?</div>
         <button class="btn ghost small" id="toSignup" type="button">Create account</button>
+        <div class="alt"><a href="#" id="toReset" style="color:inherit;text-decoration:underline">Forgot password?</a></div>
       </div>
+      <div class="panel" id="pReset" hidden>
+        <h1>Reset Password</h1>
+        <input id="rsEmail" placeholder="Email" type="email" aria-label="Email" autocomplete="email"><input id="rsName" placeholder="Full name used at signup" aria-label="Full name" autocomplete="name"><input id="rsPass" placeholder="New password" type="password" aria-label="New password" autocomplete="new-password">
+        <button class="btn fill" id="btnReset" type="button">Change password</button>
+        <div class="alt"><a href="#" id="backLogin" style="color:inherit;text-decoration:underline">Back to log in</a></div>
+      </div>
+      <div class="msg" id="rsMsg" role="alert"></div>
       <div class="msg" id="suMsg" role="alert"></div>
       <div class="msg" id="stMsg" role="alert"></div>
     </div>
@@ -409,6 +417,30 @@ input:focus{
   [suName,suEmail,suPass].forEach(function(i){i.addEventListener('keydown',function(e){if(e.key==='Enter')btnSignup.click();});});
   [siEmail,siPass].forEach(function(i){i.addEventListener('keydown',function(e){if(e.key==='Enter')btnSignin.click();});});
   [stEmail,stPass].forEach(function(i){i.addEventListener('keydown',function(e){if(e.key==='Enter')btnStLogin.click();});});
+
+
+  // forgot password
+  var pReset=document.getElementById('pReset'), rsMsg=document.getElementById('rsMsg');
+  var rsEmail=document.getElementById('rsEmail'), rsName=document.getElementById('rsName'), rsPass=document.getElementById('rsPass'), btnReset=document.getElementById('btnReset');
+  function showReset(on){
+    pReset.hidden=!on; pLogin.hidden=on; rsMsg.textContent=''; stMsg.textContent=''; stMsg.style.color='';
+    (on?rsEmail:stEmail).focus();
+  }
+  document.getElementById('toReset').addEventListener('click',function(e){e.preventDefault();rsEmail.value=stEmail.value;showReset(true);});
+  document.getElementById('backLogin').addEventListener('click',function(e){e.preventDefault();showReset(false);});
+  btnReset.addEventListener('click',function(){
+    rsMsg.textContent=''; btnReset.disabled=true;
+    fetch('/reset',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({email:rsEmail.value,name:rsName.value,password:rsPass.value})})
+      .then(function(r){return r.json();})
+      .then(function(j){
+        btnReset.disabled=false;
+        if(j.ok){stEmail.value=rsEmail.value;rsName.value='';rsPass.value='';showReset(false);stMsg.textContent=j.message;stMsg.style.color='#067a52';}
+        else rsMsg.textContent=j.error||'Something went wrong.';
+      })
+      .catch(function(){rsMsg.textContent='Cannot reach the server. Is it running?';btnReset.disabled=false;});
+  });
+  [rsEmail,rsName,rsPass].forEach(function(i){i.addEventListener('keydown',function(e){if(e.key==='Enter')btnReset.click();});});
 
  //switching stu and admin
   var pSignup=document.getElementById('pSignup'), pLogin=document.getElementById('pLogin');
