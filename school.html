@@ -50,6 +50,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 }
 @media (prefers-reduced-motion:reduce){.grow{transition-duration:.01s}.copy>*{transition:none}}
 </style>
+<style id="slide-css">html{overflow-x:hidden}@keyframes slideIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}@keyframes slideOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-60px)}}body{animation:slideIn .4s ease backwards}body.slide-out{animation:slideOut .28s ease forwards;pointer-events:none}@media (prefers-reduced-motion:reduce){body,body.slide-out{animation:none}}</style>
 </head>
 <body>
 <main class="stage" id="stage">
@@ -117,5 +118,6 @@ $("stage").onmouseleave=function(){paused=false;restart()};
 document.onkeydown=function(e){if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(S.length-1)};
 render();restart();requestAnimationFrame(tick);
 </script>
+<script id="slide-js">(function(){document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a[href]");if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.button||a.target==="_blank"||a.hasAttribute("download"))return;var h=a.getAttribute("href");if(!h||h[0]==="#"||/^(mailto|tel|javascript):/i.test(h))return;var u=new URL(a.href,location.href);if(u.origin!==location.origin||(u.pathname===location.pathname&&u.search===location.search))return;e.preventDefault();document.body.classList.add("slide-out");setTimeout(function(){location.href=u.href},260)});window.addEventListener("pageshow",function(e){if(e.persisted)document.body.classList.remove("slide-out")})})();</script>
 </body>
 </html>
