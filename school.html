@@ -22,7 +22,7 @@ nav{position:absolute;z-index:5;left:0;right:0;top:env(safe-area-inset-top,0px);
 nav b{font-family:var(--disp);font-weight:600;letter-spacing:.18em;margin-right:auto;font-size:14px}
 nav a{color:inherit;text-decoration:none;opacity:.8;padding-bottom:4px;border-bottom:2px solid transparent}
 nav a.on{opacity:1;border-color:var(--accent)}
-@media (max-width:700px){nav a:not(.on){display:none}}
+@media (max-width:700px){nav{flex-wrap:wrap;gap:6px 16px;padding:16px 5vw}nav b{flex:0 0 100%;margin-right:0}nav a{font-size:13px}}
 .copy{position:absolute;z-index:3;left:5vw;bottom:14vh;width:min(420px,60vw)}
 .place{font-size:14px;font-weight:300;margin:0 0 6px;padding-top:12px;border-top:2px solid var(--accent);display:inline-block}
 h1{font-family:var(--disp);font-weight:600;font-size:clamp(44px,8.5vw,108px);line-height:.95;margin:0 0 16px;text-transform:uppercase}
@@ -54,7 +54,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 </head>
 <body>
 <main class="stage" id="stage">
- <nav><b>TAAL HIGH SCHOOL</b><a class="on" href="#home">Home</a><a href="contact.html">Contact</a><a href="about.html">About us</a><a href="/enroll">Enroll now </a><a href="#offers"></a></nav>
+ <nav><b>TAAL HIGH SCHOOL</b><a class="on" href="#home">Home</a><a href="contact.html">Contact</a><a href="about.html">About us</a><a href="/enroll">Enroll now </a></nav>
  <div class="bg" id="bg"></div>
  <section class="copy" id="copy" aria-live="polite">
   <p class="place" id="place"></p>
@@ -68,7 +68,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <script>
 var S=[
  {n:"Taal High School",p:"Welcome to our school!",d:"Learn today, lead tomorrow.",
-  s:"url('picc.jpeg')"},
+  s:"url('pic1.jpeg')"},
  {n:"Senior High School",p:"At Taal High School - Annex Campus",d:"Our well-driven seniors that is located at the Annex Campus, join us!",
   s:"url('pic2.jpeg')"},
  {n:"Junior High School",p:"At Taal High School - Main Campus",d:"This is where our juniors are, located at the Main Campus, major events and recognitions happens here!",
