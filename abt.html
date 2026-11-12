@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>About | THS</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#16202b;--mute:#566372;--line:#d9d6cc;--accent:#b8800a;--btn:#16202b;--btnink:#fff;
+ --disp:"Oswald","Bebas Neue",Impact,"Arial Narrow",sans-serif;--body:"Roboto",system-ui,sans-serif;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f161d;--card:#17212b;--ink:#f1efe8;--mute:#a4b0bc;--line:#2b3946;--accent:#f2b134;--btn:#f2b134;--btnink:#1a1405}}
+:root[data-theme="dark"]{--bg:#0f161d;--card:#17212b;--ink:#f1efe8;--mute:#a4b0bc;--line:#2b3946;--accent:#f2b134;--btn:#f2b134;--btnink:#1a1405}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.65}
+header{display:flex;align-items:center;gap:24px;padding:20px 5vw;border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+header b{font-family:var(--disp);font-weight:600;letter-spacing:.14em;margin-right:auto;font-size:17px}
+header a{color:var(--mute);text-decoration:none;font-size:14px;padding-bottom:4px;border-bottom:2px solid transparent}
+header a.on{color:var(--ink);border-color:var(--accent)}
+main{max-width:1000px;margin:0 auto;padding:6vh 5vw 10vh}
+section[hidden]{display:none}
+h1{font-family:var(--disp);font-weight:600;font-size:clamp(40px,7vw,80px);line-height:1;margin:0 0 20px;text-transform:uppercase}
+h2{font-family:var(--disp);font-weight:500;font-size:clamp(24px,3.4vw,34px);margin:0 0 10px;text-transform:uppercase}
+.lead{font-size:18px;font-weight:300;max-width:60ch;color:var(--mute);margin:0 0 6vh}
+.mv{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.panel{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:6px;padding:28px}
+.panel p{margin:0;max-width:60ch}
+.values{margin:6vh 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.values div{border-left:2px solid var(--accent);padding-left:14px}
+.values h3{margin:0 0 4px;font-size:16px}.values p{margin:0;color:var(--mute);font-size:14px}
+.split{display:grid;grid-template-columns:1fr 1.2fr;gap:5vw}
+dl{margin:0}dt{font-weight:500;margin-top:18px}dd{margin:2px 0 0;color:var(--mute)}
+form{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:28px;display:grid;gap:16px}
+label{display:grid;gap:6px;font-size:14px;font-weight:500}
+input,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:11px 12px}
+textarea{min-height:140px;resize:vertical}
+button{font:500 15px var(--body);background:var(--btn);color:var(--btnink);border:0;border-radius:4px;padding:13px 22px;cursor:pointer;justify-self:start}
+.note{font-size:13px;color:var(--mute);margin:0}
+input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:720px){.mv,.values,.split{grid-template-columns:1fr}header a{font-size:13px}header{gap:14px}}
+</style>
+</head>
+<body>
+<header><b id="school"> </b><a href="school.html">Home</a><a href="about.html" class="on">About</a><a href="contact.html">Contact</a></header>
+<main>
+<section>
+ <h1>About us</h1>
+ <p class="lead">We are a school built around curious learners, committed teachers and families who take part in every step.</p>
+ <div class="mv">
+  <div class="panel"><h2>Our mission</h2><p>To give every student a safe, caring place to learn, and the knowledge, skills and character to succeed in school, at work and in their community.</p></div>
+  <div class="panel"><h2>Our vision</h2><p>A school where every learner grows into a confident, responsible and compassionate citizen who keeps learning and helps others do the same.</p></div>
+ </div>
+ <div class="values">
+  <div><h3>Excellence</h3><p>We set high goals and support each student in reaching them.</p></div>
+  <div><h3>Integrity</h3><p>We are honest, fair and accountable in all we do.</p></div>
+  <div><h3>Respect</h3><p>We value every person and the community we share.</p></div>
+ </div>
+</section>
+</main>
+<script>
+
+var INFO={name:"TAAL HIGH SCHOOL",addr:"BOCAUE, BULACAN, TAAL, MACAM ST 088",phone:"(000) 000-0000",email:"info@yourschool.edu"};
+var $=function(i){return document.getElementById(i)};
+$("school").textContent=INFO.name;
+</script>
+</body>
+</html>

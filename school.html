@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Taal High School</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#fff;--accent:#f2b134;--shadow:0 18px 30px rgba(0,0,0,.45);
+ --disp:"Oswald","Bebas Neue",Impact,"Arial Narrow",sans-serif;--body:"Roboto",system-ui,sans-serif;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--ink:#fff}}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0;background:#0d1217;color:var(--ink);font-family:var(--body);overflow:hidden}
+.stage{position:relative;height:100%;overflow:hidden}
+.bg,.grow{position:absolute;background-size:cover;background-position:center}
+.bg{inset:0}
+.bg::after,.grow::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0) 60%),linear-gradient(0deg,rgba(0,0,0,.4),transparent 40%)}
+.grow{z-index:2;border-radius:14px;box-shadow:var(--shadow);transition:all .8s cubic-bezier(.7,0,.2,1)}
+.grow.full{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0}
+nav{position:absolute;z-index:5;left:0;right:0;top:env(safe-area-inset-top,0px);display:flex;align-items:center;gap:24px;padding:22px 5vw;font-size:12px;letter-spacing:.04em}
+nav b{font-family:var(--disp);font-weight:600;letter-spacing:.18em;margin-right:auto;font-size:14px}
+nav a{color:inherit;text-decoration:none;opacity:.8;padding-bottom:4px;border-bottom:2px solid transparent}
+nav a.on{opacity:1;border-color:var(--accent)}
+@media (max-width:700px){nav a:not(.on){display:none}}
+.copy{position:absolute;z-index:3;left:5vw;bottom:14vh;width:min(420px,60vw)}
+.place{font-size:14px;font-weight:300;margin:0 0 6px;padding-top:12px;border-top:2px solid var(--accent);display:inline-block}
+h1{font-family:var(--disp);font-weight:600;font-size:clamp(44px,8.5vw,108px);line-height:.95;margin:0 0 16px;text-transform:uppercase}
+.copy p.d{font-size:13px;font-weight:300;line-height:1.6;max-width:340px;opacity:.85;margin:0 0 20px}
+.copy .row{display:flex;gap:12px;align-items:center}
+.save{width:34px;height:34px;border-radius:50%;border:0;background:var(--accent);color:#222;font-size:15px;cursor:pointer}
+.go{padding:10px 20px;border-radius:20px;border:1px solid rgba(255,255,255,.6);background:transparent;color:inherit;font:500 11px var(--body);letter-spacing:.06em;cursor:pointer}
+.copy>*{transition:opacity .35s,transform .35s}.copy.out>*{opacity:0;transform:translateY(12px)}
+.cards{position:absolute;z-index:3;left:calc(5vw + min(480px,64vw));right:0;bottom:calc(14vh + 64px);display:flex;gap:20px;overflow:hidden;padding:0 0 30px 6px}
+.card{flex:0 0 clamp(120px,14vw,190px);height:clamp(170px,21vw,280px);border-radius:14px;background-size:cover;background-position:center;position:relative;box-shadow:var(--shadow);cursor:pointer;border:0;color:inherit;text-align:left;padding:0;transition:transform .3s}
+.card:hover{transform:translateY(-4px)}
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(0deg,rgba(0,0,0,.65),transparent 55%)}
+.card span{position:absolute;left:12px;bottom:12px;z-index:1;font-family:var(--disp);font-weight:600;font-size:clamp(14px,1.5vw,20px);line-height:1.05;text-transform:uppercase}
+.card small{display:block;font:300 9px var(--body);text-transform:none;opacity:.85;margin-bottom:4px}
+.ctl{position:absolute;z-index:4;left:calc(5vw + min(480px,64vw));right:5vw;bottom:14vh;display:flex;align-items:center;gap:12px}
+.ctl button{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.6);background:rgba(0,0,0,.15);color:#fff;font-size:16px;cursor:pointer}
+.bar{flex:1;height:2px;background:rgba(255,255,255,.3);margin-left:12px;position:relative}
+.bar i{position:absolute;left:0;top:0;height:100%;width:0;background:var(--accent)}
+.count{font-family:var(--disp);font-size:clamp(40px,6vw,72px);font-weight:500;position:absolute;right:5vw;bottom:calc(14vh + 56px);opacity:0}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media (max-width:700px){
+ .copy{width:90vw;bottom:24vh}
+ .cards{left:5vw;bottom:calc(8vh + 56px);padding-bottom:12px}
+ .card{flex-basis:96px;height:130px}.ctl{left:5vw;bottom:8vh}
+}
+@media (prefers-reduced-motion:reduce){.grow{transition-duration:.01s}.copy>*{transition:none}}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+ <nav><b>TAAL HIGH SCHOOL</b><a class="on" href="#home">Home</a><a href="contact.html">Contact</a><a href="abt.html">About us</a><a href="enroll.html">Enroll now </a><a href="#offers"></a></nav>
+ <div class="bg" id="bg"></div>
+ <section class="copy" id="copy" aria-live="polite">
+  <p class="place" id="place"></p>
+  <h1 id="title"></h1>
+  <p class="d" id="desc"></p>
+  <div class="row"><button class="save" aria-label="Save destination" id="save">&#9733;</button><button class="go"></button></div>
+ </section>
+ <div class="cards" id="cards"></div>
+ <div class="ctl"><button id="prev" aria-label="Previous destination">&#8249;</button><button id="next" aria-label="Next destination">&#8250;</button><div class="bar"><i id="prog"></i></div></div>
+</main>
+<script>
+var S=[
+ {n:"Taal High School",p:"Welcome to our school!",d:"Learn today, lead tomorrow.",
+  s:"url('pic1.jpeg')"},
+ {n:"Senior High School",p:"At Taal High School - Annex Campus",d:"Our well-driven seniors that is located at the Annex Campus, join us!",
+  s:"url('pic2.jpeg')"},
+ {n:"Junior High School",p:"At Taal High School - Main Campus",d:"This is where our juniors are, located at the Main Campus, major events and recognitions happens here!",
+  s:"url('pic3.jpeg')"},
+ {n:"Major Events",p:"Huge Achievements by students, coordinators and players",d:"Our geeked students achievements throughout the years!",
+  s:"url('pic4.jpeg')"},
+ {n:"Enroll now",p:"Learn now and lead tomorrow at Taal High School",d:"Where quality of education is valued, join us!.",
+  s:"url('pic5.jpeg')"},
+ {n:"Access The Form",p:"Be a Taalian!",d:"Access our enrollment form to enroll to our school.",
+  s:"url('pic6.jpeg')"}
+];
+var i=0,busy=false,timer,paused=false,start=0,DUR=6500;
+var $=function(id){return document.getElementById(id)};
+function at(k){return S[(i+k+S.length)%S.length]}
+function render(){
+ var c=at(0);
+ $("bg").style.backgroundImage=c.s;
+ $("title").innerHTML=c.n.replace(" ","<br>");
+ $("place").textContent=c.p;$("desc").textContent=c.d;
+ var h="";for(var k=1;k<=5;k++){var x=at(k);h+='<button class="card" data-k="'+k+'" style="background-image:'+x.s+'" aria-label="Go to '+x.n+'"><span><small>'+x.p+'</small>'+x.n+'</span></button>'}
+ $("cards").innerHTML=h;
+}
+function go(k){
+ if(busy)return;busy=true;
+ var cp=$("copy"),card=$("cards").children[Math.min(k,5)-1];
+ cp.classList.add("out");
+ var r=card?card.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:10,height:10};
+ var st=$("stage").getBoundingClientRect(),g=document.createElement("div");
+ g.className="grow";
+ g.style.cssText="left:"+(r.left-st.left)+"px;top:"+(r.top-st.top)+"px;width:"+r.width+"px;height:"+r.height+"px;background-image:"+at(k).s;
+ $("stage").appendChild(g);g.offsetWidth;g.classList.add("full");
+ setTimeout(function(){
+  i=(i+k+S.length)%S.length;render();g.remove();cp.classList.remove("out");busy=false;restart();
+ },window.matchMedia("(prefers-reduced-motion:reduce)").matches?20:820);
+}
+function restart(){start=performance.now();}
+function tick(t){
+ if(!paused&&!busy){var p=(t-start)/DUR;$("prog").style.width=Math.min(p*100,100)+"%";if(p>=1)go(1)}
+ requestAnimationFrame(tick);
+}
+$("next").onclick=function(){go(1)};
+$("prev").onclick=function(){go(-1+S.length)};
+$("cards").onclick=function(e){var b=e.target.closest(".card");if(b)go(+b.dataset.k)};
+$("save").onclick=function(){this.style.background=this.style.background?"":"#fff"};
+$("stage").onmouseenter=function(){paused=true};
+$("stage").onmouseleave=function(){paused=false;restart()};
+document.onkeydown=function(e){if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(S.length-1)};
+render();restart();requestAnimationFrame(tick);
+</script>
+</body>
+</html>
