@@ -39,6 +39,7 @@ button{font:500 15px var(--body);background:var(--btn);color:var(--btnink);borde
 input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:720px){.mv,.values,.split{grid-template-columns:1fr}header a{font-size:13px}header{gap:14px}}
 </style>
+<style id="slide-css">html{overflow-x:hidden}@keyframes slideIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}@keyframes slideOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-60px)}}body{animation:slideIn .4s ease backwards}body.slide-out{animation:slideOut .28s ease forwards;pointer-events:none}@media (prefers-reduced-motion:reduce){body,body.slide-out{animation:none}}</style>
 </head>
 <body>
 <header><b id="school">TAAL HIGH SCHOOL</b><a href="school.html">Home</a><a href="about.html">About</a><a href="contact.html" class="on">Contact</a></header>
@@ -75,5 +76,6 @@ $("f").onsubmit=function(e){
  location.href="mailto:"+INFO.email+"?subject="+encodeURIComponent("Message from "+d.get("n"))+"&body="+encodeURIComponent(d.get("m")+"\n\n"+d.get("n")+" ("+d.get("e")+")");
 };
 </script>
+<script id="slide-js">(function(){document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a[href]");if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.button||a.target==="_blank"||a.hasAttribute("download"))return;var h=a.getAttribute("href");if(!h||h[0]==="#"||/^(mailto|tel|javascript):/i.test(h))return;var u=new URL(a.href,location.href);if(u.origin!==location.origin||(u.pathname===location.pathname&&u.search===location.search))return;e.preventDefault();document.body.classList.add("slide-out");setTimeout(function(){location.href=u.href},260)});window.addEventListener("pageshow",function(e){if(e.persisted)document.body.classList.remove("slide-out")})})();</script>
 </body>
 </html>
