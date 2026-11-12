@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>About | THS</title>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">a
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f6f4ef;--card:#fff;--ink:#16202b;--mute:#566372;--line:#d9d6cc;--accent:#b8800a;--btn:#16202b;--btnink:#fff;
  --disp:"Oswald","Bebas Neue",Impact,"Arial Narrow",sans-serif;--body:"Roboto",system-ui,sans-serif;
@@ -39,6 +39,7 @@ button{font:500 15px var(--body);background:var(--btn);color:var(--btnink);borde
 input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:720px){.mv,.values,.split{grid-template-columns:1fr}header a{font-size:13px}header{gap:14px}}
 </style>
+<style id="slide-css">html{overflow-x:hidden}@keyframes slideIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}@keyframes slideOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-60px)}}body{animation:slideIn .4s ease backwards}body.slide-out{animation:slideOut .28s ease forwards;pointer-events:none}@media (prefers-reduced-motion:reduce){body,body.slide-out{animation:none}}</style>
 </head>
 <body>
 <header><b id="school"> </b><a href="school.html">Home</a><a href="about.html" class="on">About</a><a href="contact.html">Contact</a></header>
@@ -63,5 +64,6 @@ var INFO={name:"TAAL HIGH SCHOOL",addr:"BOCAUE, BULACAN, TAAL, MACAM ST 088",pho
 var $=function(i){return document.getElementById(i)};
 $("school").textContent=INFO.name;
 </script>
+<script id="slide-js">(function(){document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a[href]");if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.button||a.target==="_blank"||a.hasAttribute("download"))return;var h=a.getAttribute("href");if(!h||h[0]==="#"||/^(mailto|tel|javascript):/i.test(h))return;var u=new URL(a.href,location.href);if(u.origin!==location.origin||(u.pathname===location.pathname&&u.search===location.search))return;e.preventDefault();document.body.classList.add("slide-out");setTimeout(function(){location.href=u.href},260)});window.addEventListener("pageshow",function(e){if(e.persisted)document.body.classList.remove("slide-out")})})();</script>
 </body>
 </html>
